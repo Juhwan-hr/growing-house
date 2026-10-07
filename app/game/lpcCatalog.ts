@@ -1,8 +1,7 @@
 /**
  * LPC 커스터마이징 화면(AvatarCustomizerModal)에서 고를 수 있는 스타일·색 목록.
- * assets-raw/recolor-lpc.mjs가 실제로 재염색해서 public/lpc에 넣어둔 것과 정확히
- * 일치해야 합니다 — 여기 없는 조합은 이미지가 없어서 깨집니다. 새 스타일/색을
- * 추가하려면 recolor-lpc.mjs에도 똑같이 추가하고 다시 실행한 뒤 여기도 갱신하세요.
+ * public/lpc에 실제로 들어 있는 그림과 정확히 일치해야 합니다 — 여기 없는 조합은
+ * 이미지가 없어서 깨집니다. 새 스타일/색을 추가하려면 그 그림 파일을 public/lpc에 먼저 넣으세요.
  */
 
 import EXTRAS from "./lpcExtras.json";
