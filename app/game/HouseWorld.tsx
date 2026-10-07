@@ -6,7 +6,7 @@
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { StaffEntry } from "../../company.config";
 import LpcSprite, { type LpcConfig } from "./LpcSprite";
-import OfficeWindow from "./OfficeWindow";
+import { useWeather } from "./useWeather";
 import PetSprite, { type PetColor, type PetKind } from "./PetSprite";
 import SeasonalTheme from "./SeasonalTheme";
 import {
@@ -25,6 +25,8 @@ const SPEED = 110; // px/초
 const COMMUTE_SPEED = 170;
 const COMMUTE_FAST = 3;
 const DOOR: [number, number] = [X0 - 70, GY];
+/** 집 양옆 마당 폭(같게 둬서 집이 화면 가운데에 오게) */
+const YARD = 160;
 const WORLD_W = 3200;
 const WORLD_H = 1420;
 /** 이보다 좁은 화면(휴대폰)에선 집 전체를 한 화면에 줄여 넣지 않고, 실제 크기에 가깝게 그려서
@@ -158,15 +160,15 @@ export default function HouseWorld({
   const rooms = useMemo(() => order.map((id) => ROOM_BY_ID.get(id)!).filter(Boolean), [order]);
 
   // 집 전체가 들어오는 상자 — 다음 방 자리(점선)까지 포함
-  // 실제로 방이 있는 칸까지만(처음 현관 하나일 땐 집이 화면을 꽉 채우게) + 다음 방 자리
+  // 실제로 방이 있는 칸까지 + 다음 방 자리. 마당은 양쪽 똑같이(YARD) 둬서 집이 가운데 오게 합니다.
   const usedCols = Math.max(1, ...Object.entries(layout.pos).map(([id, p]) => p.i + (ROOM_BY_ID.get(id)?.w ?? 1)));
-  const houseRight = bx(usedCols);
-  const topY = fy(layout.floors);
-  const houseBox = useMemo(() => {
-    const right = Math.max(houseRight, bx(layout.next.i + 1));
-    const top = Math.min(topY, fy(layout.next.f + 1));
-    return { x: X0 - 170, y: top - 90, w: right + 120 - (X0 - 170), h: GY + 40 - (top - 90) };
-  }, [houseRight, topY, layout.next.i, layout.next.f]);
+  const houseRight = Math.max(bx(usedCols), bx(layout.next.i + 1));
+  const topY = Math.min(fy(layout.floors), fy(layout.next.f + 1));
+  const houseBox = useMemo(
+    () => ({ x: X0 - 12 - YARD, y: topY - 90, w: houseRight + 6 + YARD - (X0 - 12 - YARD), h: GY + 40 - (topY - 90) }),
+    [houseRight, topY],
+  );
+  const weather = useWeather();
   /** 집 모양에 맞춘 화면 비율 — 납작한 집이면 화면도 납작하게(하늘만 크게 남지 않게) */
   const viewAspect = Math.min(3.2, Math.max(16 / 9, houseBox.w / houseBox.h));
 
@@ -495,8 +497,6 @@ export default function HouseWorld({
 
   return (
     <div className="world-frame house-frame" ref={frameRef}>
-      <OfficeWindow />
-
       <div className="world-toolbar house-toolbar">
         <div className="house-rooms" role="group" aria-label="방 바로가기">
           {!narrow ? (
@@ -542,11 +542,18 @@ export default function HouseWorld({
           style={{ width: WORLD_W, height: WORLD_H }}
         >
           <div className="hz-sky" style={{ background: band(SKY[time]) }} />
-          <div className={`hz-sun${night ? " moon" : time === "evening" ? " dusk" : ""}`} style={sunStyle} />
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="hz-cloud" style={{ left: houseBox.x + houseBox.w * (0.12 + i * 0.24), top: houseBox.y + 30 + (i % 2) * 34, opacity: night ? 0.15 : 0.9 }} />
+          {weather !== "sunny" ? <div className={`hz-overcast ${weather}`} /> : null}
+          {weather === "rain" || weather === "snow" ? null : (
+            <div className={`hz-sun${night ? " moon" : time === "evening" ? " dusk" : ""}${weather === "cloudy" ? " dim" : ""}`} style={sunStyle} />
+          )}
+          {Array.from({ length: weather === "sunny" ? 4 : 8 }, (_, i) => (
+            <div
+              key={i}
+              className={`hz-cloud${weather === "sunny" ? "" : " grey"}`}
+              style={{ left: houseBox.x + houseBox.w * (0.08 + (i * 0.86) / (weather === "sunny" ? 3 : 7)), top: houseBox.y + 24 + (i % 2) * 34, opacity: night ? 0.15 : 0.9 }}
+            />
           ))}
-          {night
+          {night && weather === "sunny"
             ? Array.from({ length: 26 }, (_, i) => (
                 <div key={i} className="hz-star" style={{ left: houseBox.x + ((i * 397) % houseBox.w), top: houseBox.y + ((i * 211) % 260) }} />
               ))
@@ -555,9 +562,25 @@ export default function HouseWorld({
           <div className="hz-path" style={{ left: X0 - 200, top: GY + 8, width: 200 }} />
           <Tree src="win-tree-a" x={X0 - 150} w={58} />
           <Tree src="win-tree-d" x={X0 - 90} w={44} />
-          <Tree src="win-tree-b" x={Math.max(houseRight, bx(layout.next.i + 1)) + 20} w={46} />
-          <Tree src="win-tree-e" x={Math.max(houseRight, bx(layout.next.i + 1)) + 80} w={58} />
+          <Tree src="win-tree-b" x={houseRight + 44} w={44} />
+          <Tree src="win-tree-e" x={houseRight + 92} w={58} />
           <div className="hz-outshade" style={{ background: OUTSHADE[time] }} />
+
+          {weather === "rain" || weather === "snow" ? (
+            <div className={`hz-precip ${weather}`} aria-hidden="true" style={{ left: houseBox.x, top: houseBox.y, width: houseBox.w, height: GY + 8 - houseBox.y }}>
+              {Array.from({ length: weather === "rain" ? 60 : 40 }, (_, i) => (
+                <i
+                  key={i}
+                  style={{
+                    left: `${(i * 37) % 100}%`,
+                    animationDuration: weather === "rain" ? `${0.7 + (i % 4) * 0.15}s` : `${5 + (i % 4)}s`,
+                    animationDelay: `${(i % 7) * -0.9}s`,
+                    ["--fall" as string]: `${GY + 8 - houseBox.y}px`,
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
 
           <Structure layout={layout} rooms={rooms} />
 

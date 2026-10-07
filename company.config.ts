@@ -19,7 +19,7 @@ export const COMPANY = {
   openedAt: "2026-10-07",
 } as const;
 
-/** 창밖 날씨를 가져올 위치(위도·경도). 기본값은 서울 시청 */
+/** 집 하늘에 띄울 실제 날씨의 위치(위도·경도). 기본값은 서울 시청 */
 export const WEATHER = { latitude: 37.5665, longitude: 126.978 } as const;
 
 /** 화면 맨 아래 원작 표기 — 이 템플릿으로 만든 집이라면 남겨 주시면 고마워요 */

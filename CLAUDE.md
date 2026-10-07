@@ -64,7 +64,7 @@ app/
     house.ts             ← 방 목록과 집이 자라는 규칙(computeLayout), 식구 자리(STAFF_HOME)
     HouseWorld.tsx        ← 집 그리기 + 걷기 rAF 루프 + 카메라 + 방 자리 바꾸기 + 휴대폰 보기
     LpcSprite.tsx · lpcCatalog.ts · lpcExtras.json ← 식구 그림(LPC 레이어)과 고를 수 있는 목록
-    PetSprite.tsx · OfficeWindow.tsx(창밖 날씨) · SeasonalTheme.tsx(12월 눈)
+    PetSprite.tsx · useWeather.ts(실제 날씨 → 집 하늘의 구름·비·눈) · SeasonalTheme.tsx(12월 눈)
   components/
     HousePanel.tsx        ← 오른쪽 패널: 집 모양 / 식구 카드
     AvatarCustomizerModal.tsx · useStaffAppearance.ts ← 🎨 모습 바꾸기
