@@ -5,7 +5,11 @@ import PwaRegister from "./components/PwaRegister";
 import { COMPANY } from "../company.config";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  // 링크 미리보기(썸네일) 주소의 기준 — Vercel에 올리면 운영 주소를 저절로 씁니다
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
+  ),
   title: COMPANY.pageTitle,
   description: COMPANY.description,
   openGraph: {
