@@ -110,7 +110,7 @@ export function useTodos() {
     needsPassword: false,
     hiddenCompletedCount: hidden.length,
     hiddenCompletedByCategory,
-    notionDatabaseUrl: null as string | null,
+    doneLinkUrl: null as string | null,
     addTodo,
     toggleTodo,
     editTodo,

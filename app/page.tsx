@@ -215,7 +215,7 @@ export default function Home() {
     listError: todoListError,
     needsPassword: todoNeedsPassword,
     hiddenCompletedByCategory: todoHiddenByCategory,
-    notionDatabaseUrl: todoNotionUrl,
+    doneLinkUrl: todoDoneLink,
     addTodo,
     toggleTodo,
     editTodo,
@@ -560,7 +560,7 @@ export default function Home() {
           listError={todoListError}
           needsPassword={todoNeedsPassword}
           hiddenCompletedByCategory={todoHiddenByCategory}
-          notionDatabaseUrl={todoNotionUrl}
+          doneLinkUrl={todoDoneLink}
           onAdd={async (text, password) => {
             await addTodo(text, "업무", password);
             triggerReaction("일감이", "체크리스트에 넣었어요! 📋");
@@ -578,7 +578,7 @@ export default function Home() {
           listError={todoListError}
           needsPassword={todoNeedsPassword}
           hiddenCompletedByCategory={todoHiddenByCategory}
-          notionDatabaseUrl={null}
+          doneLinkUrl={null}
           onAdd={async (text, password) => {
             await addTodo(text, "개인", password);
             triggerReaction("짬짬이", "체크리스트에 넣었어요! 📋");

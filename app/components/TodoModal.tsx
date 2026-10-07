@@ -31,7 +31,7 @@ export default function TodoModal({
   listError,
   needsPassword,
   hiddenCompletedByCategory,
-  notionDatabaseUrl,
+  doneLinkUrl,
   onAdd,
   onToggle,
   onEdit,
@@ -44,7 +44,7 @@ export default function TodoModal({
   needsPassword: boolean;
   hiddenCompletedByCategory: Record<TodoCategory, number>;
   /** (선택) 끝낸 업무를 모아 보는 바깥 링크 — 없으면 null */
-  notionDatabaseUrl: string | null;
+  doneLinkUrl: string | null;
   onAdd: (text: string, password?: string) => Promise<void>;
   onToggle: (id: string, password?: string) => Promise<void>;
   onEdit: (id: string, text: string, password?: string) => Promise<void>;
@@ -178,8 +178,8 @@ export default function TodoModal({
             어느 기기에서 오피스를 열든 같은 목록이 보여요. 추가·체크·삭제할 때만 비밀번호가 필요하고, 한 번 맞추면 이 기기에서는 다시 안 물어봐요.
           </p>
           <form onSubmit={submit} className="modal-form">
-            {category === "업무" && notionDatabaseUrl ? (
-              <a href={notionDatabaseUrl} target="_blank" rel="noopener noreferrer" className="modal-link">
+            {category === "업무" && doneLinkUrl ? (
+              <a href={doneLinkUrl} target="_blank" rel="noopener noreferrer" className="modal-link">
                 📋 끝낸 업무 모아 보기 ↗
               </a>
             ) : null}
