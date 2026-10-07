@@ -16,12 +16,9 @@
 - `public/kenney/pet-*.png`. 출처: https://opengameart.org/content/lpc-cats-and-dogs
 - 라이선스: CC-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0 (원 작가: bluecarrot16 외, 자세한 작가 목록은 위 페이지)
 
-### 가구·타일·창밖 풍경 — Kenney
-- `public/kenney/`(pet-* 제외). 출처: https://kenney.nl (RPG Urban Pack, Roguelike/RPG Pack)
+### 창밖 풍경·나무 — Kenney
+- `public/kenney/win-*.png`. 출처: https://kenney.nl (RPG Urban Pack, Roguelike/RPG Pack)
 - 라이선스: CC0 (출처 표기 의무 없음, 감사의 뜻으로 적어둠)
-
-### 집 안 물건 그림
-- `public/house/item-*.png` — 이 프로젝트에서 직접 그린 픽셀 그림(MIT).
 
 ### 날씨
 - 창밖 날씨: [Open-Meteo](https://open-meteo.com) (CC-BY 4.0, API 키 불필요)
