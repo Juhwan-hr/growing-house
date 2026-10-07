@@ -67,21 +67,30 @@ export type StaffEntry = {
 };
 
 /**
- * 식구 목록 — 출근을 누르면 들어오고, 퇴근을 누르면 나가요. 예:
- *   {
- *     zone: "work",
- *     name: "일꾼1",
- *     role: "내 할 일 앱",
- *     thoughts: ["오늘 할 일부터 볼게요."],
- *     url: "https://내-앱-주소",
- *     lpc: {
- *       gender: "male",
- *       skin: "light",
- *       hair: { style: "bob", color: "black" },
- *       torso: { style: "tshirt", color: "sky" },
- *       legs: { style: "pants", color: "navy" },
- *       feet: { style: "shoes", color: "white" },
- *     },
- *   },
+ * 식구 목록 — 출근을 누르면 들어오고, 퇴근을 누르면 나가요(alwaysPresent는 늘 있음).
+ * 아래 "첫 식구"는 예시예요. 이름·맡은 일·혼잣말을 바꾸고 url에 내 앱 주소를 넣거나,
+ * 이 항목을 복사해서 식구를 늘려 보세요. 방(ZONES)을 만들었다면 zone에 그 방 id를 적어요.
  */
-export const STAFF_LIST: StaffEntry[] = [];
+export const STAFF_LIST: StaffEntry[] = [
+  {
+    zone: "entrance",
+    name: "첫 식구",
+    role: "연결할 앱을 추가해주세요",
+    thoughts: [
+      "안녕하세요! 이 집의 첫 식구예요. 연결할 앱을 추가해주세요.",
+      "company.config.ts에서 제 이름이랑 앱 주소를 정해 주세요.",
+      "방을 하나 만들어 주면 집이 한 칸 자라요.",
+      "식구가 늘면 다 같이 출근하고 퇴근해요.",
+    ],
+    // url: "https://내-앱-주소",
+    alwaysPresent: true,
+    lpc: {
+      gender: "female",
+      skin: "light",
+      hair: { style: "ponytail", color: "dark_brown" },
+      torso: { style: "cardigan", color: "sky" },
+      legs: { style: "pants", color: "navy" },
+      feet: { style: "shoes", color: "white" },
+    },
+  },
+];

@@ -66,7 +66,9 @@ export default function HousePanel({
               앱 열기 ↗
             </a>
           ) : (
-            <p className="hp-note">아직 연결된 앱이 없어요.</p>
+            <p className="hp-note">
+              아직 연결된 앱이 없어요. <code>company.config.ts</code>에서 이 식구의 <code>url</code>에 내 앱 주소를 넣어 주세요.
+            </p>
           )}
           {person.lpc ? (
             <button type="button" className="hp-go" onClick={() => onCustomize(person)}>

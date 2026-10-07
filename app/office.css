@@ -607,11 +607,11 @@
 }
 .hz-ghost span { font: 700 13px var(--font-body); color: var(--ink-fixed); background: #fff; border: 2px dashed var(--ink-fixed); border-radius: 999px; padding: 2px 10px; }
 
-/* 사람·반려동물 — 이름표는 집 전체를 볼 때는 숨기고(20명 이름표가 겹치면 안 보여서),
+/* 사람·반려동물 — 식구가 많을 때(.crowded, 7명 이상)는 집 전체를 볼 때 이름표를 숨기고(겹쳐서 안 보여서),
    방을 가까이 보거나 캐릭터에 마우스를 올렸을 때만 보여줍니다 */
 .hz-people { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 60; }
 .hz-people .staff { cursor: pointer; }
-.house-stage:not(.zoomed) .hz-people .staff:not(:hover):not(:focus-visible) .st-tag { opacity: 0; }
+.house-stage.crowded:not(.zoomed) .hz-people .staff:not(:hover):not(:focus-visible) .st-tag { opacity: 0; }
 .hz-people .st-tag { transition: opacity .2s; }
 .hz-people .staff:focus-visible { outline: none; }
 .hz-people .staff:focus-visible .st-tag { background: var(--yellow); }

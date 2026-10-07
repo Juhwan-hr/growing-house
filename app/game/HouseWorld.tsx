@@ -346,7 +346,7 @@ export default function HouseWorld({
         }
         timers.push(window.setTimeout(speak, 18000 + Math.random() * 9000));
       };
-      timers.push(window.setTimeout(speak, 3000 + Math.random() * 24000));
+      timers.push(window.setTimeout(speak, 2000 + Math.random() * 10000));
     });
     return () => timers.forEach((t) => window.clearTimeout(t));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -537,7 +537,7 @@ export default function HouseWorld({
       <div className={`world-viewport house-viewport${narrow ? " narrow" : ""}`} ref={viewportRef} onScroll={onViewportScroll} style={narrow || isFullscreen ? undefined : { aspectRatio: String(viewAspect) }}>
         <div className="house-clip" ref={clipRef}>
         <div
-          className={`house-stage${zoomed && !narrow ? " zoomed" : ""}${swapMode ? " swap" : ""}${moving ? " moving" : ""}`}
+          className={`house-stage${zoomed && !narrow ? " zoomed" : ""}${ROSTER.length > 6 ? " crowded" : ""}${swapMode ? " swap" : ""}${moving ? " moving" : ""}`}
           ref={stageRef}
           style={{ width: WORLD_W, height: WORLD_H }}
         >
