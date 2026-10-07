@@ -1,0 +1,1302 @@
+/* ═══════════════════════════════════════════════════════════
+   가상 오피스 — 맵 + 정보 패널 (globals.css 토큰 사용)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 근무 상태 버튼 ───────────────────────────────────── */
+.office-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.office-controls button {
+  padding: 10px 16px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--win);
+  box-shadow: 2px 2px 0 rgba(28, 58, 58, .18);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .1s, box-shadow .1s, background .1s;
+}
+.office-controls button:hover { transform: translateY(-1px); }
+.office-controls button:active { transform: translate(1px, 1px); box-shadow: none; }
+/* 노란 강조색은 다크모드에서도 밝은 색 그대로라, 그 위 글자는 고정 잉크색을 씁니다 */
+.office-controls button.active { background: var(--yellow); color: var(--ink-fixed); border-color: var(--ink-fixed); }
+
+/* ── 오피스 레이아웃 — 지도가 항상 전체 폭 메인, 위젯은 지도 아래 탭 패널 하나 ──
+   위젯 3개(today.briefing/staff.roster/zone.guide)를 지도 오른쪽 사이드 패널로
+   옮겨봤는데(2026-08-29 첫 시도), "위젯만 스크롤이 생기고, 지도가 좁아지고,
+   사무실이 메인이 아닌 느낌"이라는 피드백을 받고 되돌렸습니다. 대신 위젯 3개를
+   `WidgetTabs.tsx`에서 창 하나 + 탭으로 묶어서 지도 "아래"(전체 폭)에 뒀습니다 —
+   지도는 항상 원래 크기 그대로고, 위젯도 창 3개가 아니라 1개 분량만 세로 공간을
+   차지해서 예전보다 훨씬 짧습니다. */
+.office-layout { display: grid; gap: 16px; }
+.brief-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+.brief-stat { display: grid; gap: 4px; }
+.brief-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.brief-stat b { font-size: 24px; font-weight: 900; }
+.brief-sub { font-size: 12px; color: var(--ink-faint); }
+@media (max-width: 680px) { .brief-grid { grid-template-columns: 1fr; } }
+.panel .win-body { padding: 22px; }
+/* 탭 바 — 기존 .win-bar(그라디언트 타이틀바) 안에 탭 버튼들을 나란히 놓습니다.
+   오른쪽 ─▢✕ 장식은 margin-left:auto라 탭 버튼들과 자연스럽게 같은 줄에 붙습니다. */
+.tab-bar { gap: 4px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .18);
+  color: white;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tab-btn:hover { background: rgba(255, 255, 255, .3); }
+.tab-btn.active { background: white; color: var(--ink-fixed); }
+/* 직원 명단·구역 안내 탭은 항목이 많을 수 있어 자체 스크롤을 둡니다(브리핑 탭은
+   내용이 짧아 필요 없음) — 위젯 전체가 아니라 탭 "내용"만 스크롤되는 구조입니다. */
+.panel-scroll { max-height: min(50vh, 420px); overflow-y: auto; }
+.panel-list-item { margin-bottom: 16px; }
+.panel-list-item:last-child { margin-bottom: 0; }
+.panel-list-item p:first-child { margin: 0; font-size: 17px; font-weight: 900; }
+.panel-list-item .panel-code { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--ink-faint); }
+.panel-list-item p:last-child { margin: 4px 0 0; font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+.panel-empty { margin: 0; font-size: 15px; color: var(--ink-soft); line-height: 1.65; }
+
+/* ── 월드 ─────────────────────────────────────────────── */
+.world-frame {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: #0f2222;
+  box-shadow: var(--shadow);
+}
+/* 전체화면 버튼으로 이 요소만 전체화면에 들어갔을 때, 창문+지도가 화면을 꽉 채우게 합니다 */
+.world-frame:fullscreen {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  background: var(--sky-bg);
+}
+.world-frame:fullscreen .world-viewport { flex: 1; height: auto; }
+.world-viewport {
+  position: relative;
+  height: min(80vh, 860px);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(79, 184, 232, .22), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(78, 203, 143, .18), transparent 55%),
+    #0f2222;
+}
+.world-viewport:active { cursor: grabbing; }
+/* 복도 바닥 — 밝은 회보라 실내 타일(방과 같은 재질)을 씁니다(2026-09-29). 한때
+   복도만 잔디로 바꿔 "공원처럼" 만들어본 적도 있는데(스크래치 브랜치 tile-preview-
+   park), 집주인이 "그냥 사무실이 낫겠다"고 해서 밝은 오피스 타일 하나로 통일했습니다 —
+   그 실험은 CLAUDE.md의 "진행 중 — pixel-redesign 브랜치" 항목에 기록만 남기고
+   브랜치 자체는 지웠습니다. */
+.world-floor {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background-color: #eef6fb;
+  background-image: linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, .45)), url("/kenney/office-tile.png");
+  background-size: 16px 16px, 16px 16px;
+  background-repeat: repeat, repeat;
+  background-blend-mode: screen, multiply;
+  image-rendering: pixelated;
+  box-shadow: inset 0 0 90px rgba(28, 58, 58, .22);
+}
+
+/* 사무실 바깥 테두리 — 지도 전체를 감싸는 "건물 윤곽선". 위/왼쪽/오른쪽은 테두리 하나로
+   잇고, 아래쪽은 입구 자리에 문처럼 트인 틈을 남기려고 별도 막대 2개(.world-boundary-
+   bottom)로 나눠 그립니다(OfficeWorld.tsx 참고). 안쪽 채움 없이 테두리만 있어서 지도
+   내용을 가리지 않습니다. */
+.world-boundary {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 5px solid var(--ink-fixed);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+}
+.world-boundary-bottom {
+  position: absolute;
+  background: var(--ink-fixed);
+  pointer-events: none;
+}
+
+/* 방 = 픽셀 타일 바닥(대각 체크무늬, 28px = 캐릭터 격자 2칸) + 안쪽 위 벽 띠(rm::before).
+   테두리 3px는 캐릭터 스프라이트 테두리(OUTLINE=3)와 두께를 맞춘 것입니다. */
+/* 방 안쪽 바닥 — 복도와 같은 밝은 회보라 실내 타일을 씁니다(2026-09-29, index37).
+   예전 타일(index10)이 어둡다는 피드백을 받아 더 밝은 타일로 바꿨는데, 그것만으론
+   부족했습니다 — 타일 원본 자체가 Kenney 특유의 차분한 중간 톤이라 room 색
+   (background-color)과 곱하기만 하면 여전히 어두워서, 반투명 흰 레이어를 타일 위에
+   `screen`으로 한 번 더 얹어(먼저 밝힌 뒤에 room 색과 multiply) 확실히 밝아지게
+   했습니다. **새 Kenney 타일이 어둡게 느껴지면 background-color만 밝히지 말고 이
+   흰 `screen` 레이어 기법부터 시도하세요** — multiply 특성상 background-color를
+   아무리 흰색에 가깝게 해도 타일 자체보다 밝아지지 않습니다. */
+.rm {
+  position: absolute;
+  border: 3px solid var(--ink-fixed);
+  border-radius: 4px;
+  background-color: #fdfdfd;
+  background-image: linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, .45)), url("/kenney/office-tile.png");
+  background-size: 16px 16px, 16px 16px;
+  background-repeat: repeat, repeat;
+  background-blend-mode: screen, multiply;
+  image-rendering: pixelated;
+  box-shadow: 4px 5px 0 rgba(28, 58, 58, .22);
+}
+/* 위쪽 벽 띠 — Kenney 타일을 가로로 반복해서 진짜 건물 벽처럼 보이게 합니다.
+   방문(.rm-door)은 항상 room.h - 1 (아래쪽 변)에 있어서 이 띠와 겹치지 않습니다.
+   처음엔 붉은 벽돌 타일(index17)을 썼는데, 채도가 너무 높아 파스텔 초록/하늘색
+   오피스 톤과 부딪히고 "중세 마을" 느낌이 난다는 피드백을 받았습니다(2026-09-29) —
+   바닥과 같은 계열의 차분한 회보라 돌바닥 위에 옅은 나무색 트림이 얹힌 타일
+   (index90)로 바꾸고, 바닥처럼 background-blend-mode: multiply로 한 번 더 부드럽게
+   눌러서 채도를 낮췄습니다. */
+.rm::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 16px;
+  border-radius: 2px 2px 0 0;
+  background-color: #eef2f5;
+  background-image: url("/kenney/wall-trim.png");
+  background-size: 16px 16px;
+  background-repeat: repeat-x;
+  background-blend-mode: multiply;
+  image-rendering: pixelated;
+  border-bottom: 3px solid var(--ink-fixed);
+  pointer-events: none;
+}
+.rm-bedroom { background-color: #eaf3ff; }
+.rm-hobby { background-color: #eafbf3; }
+.rm-growth { background-color: #f1faea; }
+.rm-work { background-color: #e8f7f7; }
+.rm-archive { background-color: #fdf6e8; }
+.rm-studio { background-color: #fbeee0; }
+.rm-secretary { background-color: #fdf0f5; }
+/* 중앙 허브(라운지) — 3단계(방사형 배치) 개편에서 추가된, 벽 없는 원형 공용 공간입니다.
+   처음엔 `.rm`의 잉크 테두리·하드 드롭섀도를 그대로 물려받아 모서리만 둥글렸는데,
+   "방이랑 구분이 안 되고 또 다른 방처럼 보인다"는 피드백을 받았습니다(2026-08-30) —
+   방들은 전부 잉크 테두리로 "여긴 벽이 있는 방"이라는 신호를 주는데, 라운지는 그
+   반대(벽 없는 공용 공간)라는 걸 보여줘야 했습니다. 그래서 테두리·그림자를 없애고,
+   대신 `mask-image`로 가장자리를 부드럽게 페이드아웃시켜서 "경계 없이 은은하게 퍼지는
+   바닥 얼룩" 느낌으로 바꿨습니다. 방 이름표(.rm-head, 방 바깥 위에 뜨는 알약)도 이
+   원에는 안 어울려서 대신 원 한가운데에 뜨는 라벨(.hub-label)을 씁니다.
+   바닥 타일은 방·복도와 같은 밝은 실내 타일이고, `background-color`만 라운지 전용
+   (`#fff8e2`, 따뜻한 크림색)으로 다르게 둬서 "공용 라운지"라는 구분만 색으로 줍니다. */
+.rm-hub {
+  border: none;
+  box-shadow: none;
+  border-radius: 50%;
+  background-color: #fff8e2;
+  background-image: linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, .3)), url("/kenney/office-tile.png");
+  background-size: 16px 16px, 16px 16px;
+  background-repeat: repeat, repeat;
+  background-blend-mode: screen, multiply;
+  -webkit-mask-image: radial-gradient(circle, #000 62%, transparent 100%);
+  mask-image: radial-gradient(circle, #000 62%, transparent 100%);
+}
+.rm-hub::before { display: none; }
+.hub-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 99px;
+  background: var(--win);
+  font-size: 15px;
+  font-weight: 900;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.rm-head {
+  position: absolute;
+  left: 10px;
+  top: -22px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100% - 20px);
+  overflow: hidden;
+  padding: 3px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 99px;
+  background: var(--win);
+  font-size: 15px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.rm-code {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-family: "Archivo", sans-serif;
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+.rm-door { position: absolute; width: 40px; height: 8px; background: var(--yellow); box-shadow: 0 0 0 2px var(--ink-fixed); }
+/* 옆쪽(왼쪽·오른쪽) 벽에 낸 문 — 가로 막대를 그대로 쓰면 벽과 이어지지 않고 붕 떠
+   보여서, 가로/세로를 맞바꾼 세로 막대로 그립니다. */
+.rm-door-side { width: 8px; height: 40px; }
+
+.entrance-mat {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 3px dashed #1f93cf;
+  border-radius: 4px;
+  background: rgba(210, 240, 255, .6);
+  font-family: "Archivo", sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #1f93cf;
+}
+
+/* ── 직원 캐릭터(방 안을 서성이며 돌아다닙니다) ───────────── */
+.staff {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  z-index: 6;
+  cursor: default;
+  text-decoration: none;
+  will-change: transform;
+  /* button 태그로 렌더링되는 경우(입력창을 여는 캐릭터)를 위한 기본 스타일 초기화 */
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+.staff.linked { cursor: pointer; }
+.staff.linked:hover .st-tag { background: var(--yellow); }
+/* 캐릭터끼리 겹쳐서 이름표가 가릴 때, 마우스를 올린 캐릭터를 맨 앞으로 끌어올려
+   이름표·말풍선이 다른 캐릭터에 안 가리게 합니다(모든 .staff는 평소 z-index: 6로 동일). */
+.staff:hover { z-index: 20; }
+.st-sprite {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 31px;
+  height: 48px;
+  transform: translate(-50%, -100%);
+  animation: staffBob 2.6s ease-in-out infinite;
+}
+/* LPC(Liberated Pixel Cup) 레이어 스프라이트 — 64×64 프레임을 48×48로 표시합니다.
+   staffBob(숨쉬기)은 실제 걷기 다리 애니메이션과 같이 있으면 이중으로 흔들려 보여서 뺐고,
+   대신 lpcWalk가 프레임을 넘기는 동안만 움직입니다(정지 시 0번 프레임에서 멈춤). */
+.st-sprite.lpc-sprite {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  image-rendering: pixelated;
+  animation: none;
+  transform: translate(-50%, -100%) scale(0.75);
+  transform-origin: bottom center;
+}
+.lpc-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  background-position-x: 0;
+}
+.staff.f-up .lpc-layer { background-position-y: 0; }
+.staff.f-left .lpc-layer { background-position-y: -64px; }
+.staff.f-down .lpc-layer { background-position-y: -128px; }
+.staff.f-right .lpc-layer { background-position-y: -192px; }
+.staff.walking .lpc-layer { animation: lpcWalk .72s steps(9) infinite; }
+@keyframes lpcWalk { from { background-position-x: 0; } to { background-position-x: -576px; } }
+
+/* 집주인·단짝 전용 PNG 스프라이트(ImageSprite) — 실제 그림 비율이 31×48 박스와 완전히
+   같지 않아서 object-fit으로 비율을 유지합니다 */
+img.st-sprite {
+  max-width: none;
+  object-fit: contain;
+  object-position: bottom center;
+}
+/* 방향별로 4장을 한꺼번에 그려두고(JellySprite·ImageSprite 공통), rAF 루프가 매 프레임
+   갱신하는 .staff의 f-up/f-down/f-left/f-right 클래스로 그 중 하나만 보여줍니다 */
+.dir-sprite { display: none; }
+.staff:not(.f-up):not(.f-left):not(.f-right) .dir-down,
+.staff.f-down .dir-down { display: block; }
+.staff.f-up .dir-up { display: block; }
+.staff.f-left .dir-left { display: block; }
+.staff.f-right .dir-right { display: block; }
+.staff.walking .st-sprite { animation: staffWalkBob .38s steps(2) infinite; }
+/* "일하는 척" — 가만히 있는 평소 숨쉬기 애니메이션(staffBob, 2.6s 부드러운 곡선)보다
+   훨씬 빠르고 딱딱 끊기는 리듬이라, 축소된 지도에서도 "분주하다"는 게 한눈에 읽힙니다 */
+.staff.working .st-sprite { animation: staffTypeBob .45s steps(1) infinite; }
+@keyframes staffTypeBob { 0%, 100% { transform: translate(-50%, -100%); } 50% { transform: translate(-50%, calc(-100% - 3px)); } }
+@keyframes staffWalkBob { 50% { transform: translate(-50%, calc(-100% - 2px)); } }
+@keyframes staffBob { 50% { transform: translate(-50%, calc(-100% - 2px)); } }
+/* LPC 스프라이트는 걷기 다리 애니메이션 자체가 있어서 staffBob류(몸 전체 까딱임)를
+   걷기/근무 상태에서도 절대 물려받으면 안 됩니다 — 위 .staff.walking/.working .st-sprite
+   규칙과 동일한 우선순위(클래스 3개)라 나중에 나온 이 규칙이 이깁니다(소스 순서로 승리). */
+.staff.walking .st-sprite.lpc-sprite,
+.staff.working .st-sprite.lpc-sprite {
+  animation: none;
+  transform: translate(-50%, -100%) scale(0.75);
+}
+
+/* 흐릿한 연노랑 후광 — 캐릭터 뒤에 은은하게 깔립니다 */
+.staff.halo::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 74px;
+  height: 74px;
+  transform: translate(-50%, -78%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 244, 176, .65), rgba(255, 244, 176, 0) 70%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* 말풍선 — 틈틈이 랜덤 대사를 보여줍니다 */
+.st-bubble {
+  position: absolute;
+  left: 0;
+  top: -88px;
+  min-width: 174px;
+  max-width: 504px;
+  padding: 6px 10px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-fixed);
+  text-align: center;
+  line-height: 1.35;
+  white-space: normal;
+  opacity: 0;
+  transform: translate(-50%, -100%) translateY(6px) scale(.88);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none;
+  z-index: 7;
+  box-shadow: 2px 2px 0 rgba(28, 58, 58, .18);
+}
+.st-bubble:empty { display: none; }
+.st-bubble.show { opacity: 1; transform: translate(-50%, -100%) translateY(0) scale(1); }
+.st-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #fff;
+  border-right: 2px solid var(--ink-fixed);
+  border-bottom: 2px solid var(--ink-fixed);
+  transform: rotate(45deg);
+}
+
+.st-tag {
+  position: absolute;
+  left: 0;
+  top: -52px;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .95);
+  color: var(--ink-fixed);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+}
+.st-tag b { font-size: 12px; font-weight: 900; }
+/* 이름표 아래 작은 알림 칩 — "이 기기에만 저장"(로컬 전용 데이터)처럼, 클릭했을 때
+   뭐가 일어나는지 미리 알려주는 보조 표시입니다. */
+.st-chip { font-size: 9px; font-weight: 700; white-space: nowrap; }
+/* .st-tag 배경이 다크모드에서도 안 바뀌는 고정 흰색이라, 칩 글자색도 --ink-faint 같은
+   테마별 가변 색 대신 고정 색을 씁니다 — 안 그러면 다크모드에서 밝은 배경 위에 밝은
+   글자가 겹쳐 안 보이는, 이 프로젝트에서 이미 한 번 났던 버그가 똑같이 납니다. */
+.st-chip-local { color: #b5852e; }
+.st-badge {
+  position: absolute;
+  top: -8px;
+  right: -9px;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  place-items: center;
+  border: 2px solid var(--win);
+  border-radius: 999px;
+  background: #ef5757;
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* 집주인·단짝은 이름으로만 구분되는 캐릭터라 이름표 배경으로 한 번 더 강조합니다 */
+.staff.tag-sky .st-tag { background: rgba(79, 184, 232, .82); }
+.staff.tag-yellow .st-tag { background: rgba(255, 227, 122, .82); }
+
+/* ── 반려동물(강아지·고양이) — 방에 갇히지 않고 사무실 전체를 돌아다닙니다 ── */
+.pet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 5;
+  will-change: transform;
+}
+/* PetSprite.tsx가 오른쪽/왼쪽 두 장을 미리 그려두고, rAF 루프가 매 프레임 갱신하는
+   .pet.f-left 클래스로 그 중 하나만 보여줍니다(사람 캐릭터의 4방향 전환과 같은 방식,
+   위/아래는 옆모습을 그대로 씁니다). 2026-09-29부터 SVG가 아니라 LPC 스타일 PNG
+   스프라이트(`<img>`)를 감싸는 래퍼 역할 — 좌우 반전은 반드시 안쪽 img에 걸어야
+   합니다(이유는 PetSprite.tsx 주석 참고, bob 애니메이션과 겹치면 깜빡이는 버그). */
+.pet-sprite {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 42px;
+  height: 26px;
+  transform: translate(-50%, -90%);
+  filter: drop-shadow(2px 3px 0 rgba(28, 58, 58, .22));
+  animation: petBob 1.4s ease-in-out infinite;
+  cursor: pointer;
+}
+.pet-sprite img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; display: block; }
+.pet-sprite.dir-left img { transform: scaleX(-1); }
+.pet:not(.f-left) .dir-right { display: block; }
+.pet.f-left .dir-left { display: block; }
+.pet.walking .pet-sprite { animation: petWalkBob .3s steps(2) infinite; }
+@keyframes petBob { 50% { transform: translate(-50%, -90%) translateY(-1px); } }
+@keyframes petWalkBob { 50% { transform: translate(-50%, -90%) translateY(-3px); } }
+
+/* 반려동물을 클릭하면 뜨는 작은 반응 이모지 (숨겨진 재미 요소) */
+.pet-reaction {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -140%);
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+.pet-reaction.show { animation: petReactionPop .9s ease forwards; }
+@keyframes petReactionPop {
+  0% { opacity: 0; transform: translate(-50%, -140%) scale(.4); }
+  30% { opacity: 1; transform: translate(-50%, -150%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -190%) scale(1); }
+}
+
+/* ── 12월 시즌 테마: 화면 위로 눈이 내립니다 ── */
+.seasonal-snow { position: absolute; inset: 0; z-index: 6; overflow: hidden; pointer-events: none; }
+.snowflake {
+  position: absolute;
+  top: -8%;
+  color: rgba(255, 255, 255, .9);
+  text-shadow: 0 0 3px rgba(28, 58, 58, .25);
+  animation-name: snowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes snowFall {
+  from { transform: translateY(-10%); }
+  to { transform: translateY(112%); }
+}
+
+/* ── 창밖 풍경(시간대별로 바뀌는 하늘) — 지도 위에 별도 배너로 표시 ── */
+/* 2026-09-30: 부드러운 CSS 그라디언트+SVG 실루엣 스카이라인에서 Kenney RPG Urban
+   Pack 타일 기반 픽셀 풍경으로 교체했습니다. 하늘은 부드러운 보간 대신 4단계
+   하드 스톱 밴드로 그려 "8비트 도트 하늘" 느낌을 내고(OfficeWindow.tsx의
+   bandedSky()), 건물/정원은 SVG가 아니라 실제 DOM div로 그립니다 — SVG를
+   preserveAspectRatio="none"으로 컨테이너 폭에 맞춰 늘리면 안에 넣는 타일
+   이미지가 가로로만 비정상적으로 늘어나 픽셀이 뭉개지는 문제가 있어서,
+   가로/세로 배율이 뒤섞이지 않는 일반 div+background-image 타일링으로
+   바꿨습니다. 같은 날 후속으로, 아침·낮엔 도시 스카이라인(.ow-skyline*), 저녁·밤엔
+   정원(.ow-garden*)이 보이도록 장면 자체를 시간대로 나눴습니다(OfficeWindow.tsx의
+   sceneFor()) — 한 번은 스카이라인을 상점가로 바꿔봤다가, 집주인이 "원래 스카이라인과
+   정원을 합쳐달라"고 정정해서 스카이라인으로 되돌리고 정원과 짝지었습니다. */
+.office-window {
+  position: relative;
+  margin: 12px 12px 0;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 4px solid var(--ink-fixed);
+  box-shadow: 0 3px 0 rgba(28, 58, 58, .3);
+  pointer-events: none;
+  transition: background 1.2s ease;
+}
+.ow-icon { position: absolute; left: 10px; top: 8px; font-size: 22px; z-index: 3; }
+.ow-precip { position: absolute; inset: 0; overflow: hidden; z-index: 2; }
+.ow-drop {
+  position: absolute;
+  top: -10%;
+  width: 2px;
+  height: 14px;
+  background: rgba(255, 255, 255, .55);
+  animation-name: snowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.ow-flake {
+  position: absolute;
+  top: -8%;
+  color: rgba(255, 255, 255, .85);
+  font-size: 8px;
+  animation-name: snowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.ow-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: .85; }
+
+/* 뭉실뭉실한 블록 구름 — box-shadow로 사각형 7개를 이어붙인 "8비트 구름" */
+.ow-cloud {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  opacity: .92;
+  box-shadow:
+    6px 0 0 #fff,
+    12px 0 0 #fff,
+    18px 0 0 #fff,
+    3px -5px 0 #fff,
+    9px -5px 0 #fff,
+    15px -5px 0 #fff;
+  image-rendering: pixelated;
+  transition: opacity .8s ease, filter .8s ease;
+}
+.ow-cloud.dim { filter: brightness(.45); opacity: .7; }
+
+/* 아침·낮 — 도시 스카이라인(건물 7채) */
+.ow-skyline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  transition: filter 1.2s ease;
+}
+.ow-building {
+  position: absolute;
+  bottom: 0;
+  background-repeat: repeat;
+  background-size: 16px 16px;
+  image-rendering: pixelated;
+}
+.ow-roof {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background-repeat: repeat-x;
+  background-size: 16px 16px;
+  image-rendering: pixelated;
+}
+
+/* 저녁·밤 — 작은 정원(잔디밭 + 나무) */
+.ow-garden {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  transition: filter 1.2s ease;
+}
+.ow-garden-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 34px;
+  background-repeat: repeat;
+  background-size: 16px 16px;
+  image-rendering: pixelated;
+}
+.ow-garden-fence { position: absolute; bottom: 34px; left: 0; width: 100%; height: 3px; background: #c9a06a; }
+.ow-garden-tree { position: absolute; bottom: 30px; image-rendering: pixelated; }
+.ow-frame {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ink-fixed) 4px, transparent 4px),
+    linear-gradient(90deg, var(--ink-fixed) 4px, transparent 4px);
+  background-size: 100% 50%, 33.33% 100%;
+  opacity: .85;
+  z-index: 3;
+}
+.ow-label {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .78);
+  color: var(--ink-fixed);
+  font-size: 11px;
+  font-weight: 900;
+}
+@media (max-width: 680px) {
+  .office-window { height: 72px; }
+}
+
+/* 지도 내부를 가리지 않도록, 지도 위(창문 아래)에 별도 줄로 뺀 툴바입니다 */
+.world-toolbar { display: flex; justify-content: flex-end; gap: 6px; padding: 8px 12px 0; }
+.world-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--ink-fixed);
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.world-toolbar button.on { background: var(--yellow); }
+.world-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: rgba(15, 34, 34, .72);
+  color: #eafcf6;
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* ── 캐릭터 클릭 시 뜨는 입력창(모달) ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 34, 34, .55);
+}
+.modal-card { width: min(420px, 100%); animation: rise .25s ease both; }
+.modal-close {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: none;
+  background: rgba(255, 255, 255, .25);
+  border-radius: 6px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.modal-form { display: grid; gap: 12px; }
+.modal-link {
+  display: inline-block;
+  color: var(--sky-deep);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.modal-hint { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
+.modal-form label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.modal-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time-select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time-select-row select { width: 100%; }
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  padding: 8px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--win);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+.modal-form input:focus,
+.modal-form select:focus,
+.modal-form textarea:focus {
+  outline: 3px solid rgba(31, 147, 207, .35);
+  outline-offset: 1px;
+}
+.modal-checkbox { display: flex !important; flex-direction: row; align-items: center; gap: 8px; }
+.modal-checkbox input { width: auto; }
+
+.modal-submit {
+  padding: 10px 16px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 10px;
+  background: var(--yellow);
+  box-shadow: 2px 2px 0 rgba(28, 58, 58, .18);
+  color: var(--ink-fixed);
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.modal-submit:disabled { opacity: .6; cursor: default; }
+.modal-error { margin: 0; color: #c1443c; font-size: 13px; font-weight: 700; }
+.modal-loading { margin: 0; padding: 12px 0; color: var(--ink-soft); font-size: 14px; text-align: center; }
+.modal-done { display: grid; gap: 6px; text-align: center; padding: 8px 0; }
+
+/* ── Ctrl/Cmd+K 직원 검색 팔레트 ─────────────────────────── */
+.palette-overlay { align-items: flex-start; padding-top: 12vh; }
+.palette-card { width: min(480px, 100%); }
+.palette-body { display: grid; gap: 10px; padding-top: 14px; }
+.palette-input {
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--win);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+}
+.palette-input:focus { outline: 3px solid rgba(31, 147, 207, .35); outline-offset: 1px; }
+.palette-notice { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--sky-bg); color: var(--ink); font-size: 13px; }
+.palette-list { list-style: none; margin: 0; padding: 0; max-height: min(50vh, 420px); overflow-y: auto; display: grid; gap: 4px; }
+.palette-empty { padding: 10px 0; color: var(--ink-soft); font-size: 14px; text-align: center; }
+.palette-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.palette-item.active,
+.palette-item:hover { background: var(--sky-bg); }
+.palette-item-hint { font-size: 12px; font-weight: 700; color: var(--ink-faint); white-space: nowrap; }
+.modal-done p:first-child { margin: 0; font-size: 18px; font-weight: 900; }
+.modal-done-sub { margin: 0 0 10px; color: var(--ink-soft); font-size: 13px; }
+
+/* ── 캐릭터 외형 커스터마이징(AvatarCustomizerModal) ──
+   2026-10-02 꾸미기 확장: 왼쪽 = 큰 미리보기·방향·성별·랜덤·추천 조합, 오른쪽 = 탭 8개.
+   스타일 썸네일은 그 레이어 한 장이 아니라 "지금 모습에 그 스타일을 입힌 캐릭터"를
+   고르는 부위만 확대해서 보여줍니다(레이어만 보이면 얼굴·머리 정보가 없어서 고르기 어려웠음). */
+.avatar-modal { width: min(860px, 100%); }
+.avatar-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; max-height: min(78vh, 760px); overflow: auto; }
+@media (max-width: 720px) { .avatar-body { grid-template-columns: minmax(0, 1fr); max-height: none; } }
+.avatar-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.avatar-main { min-width: 0; }
+.avatar-preview {
+  height: 170px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(#cfe9f6 0 62%, #f4ecdf 62% 100%);
+  border: 2px solid var(--ink-fixed);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+/* 미리보기 안의 .staff는 실제 게임 캐릭터가 아니라 LpcSprite의 방향/걷기 CSS 훅만
+   빌려 쓰는 정적 래퍼입니다 — translate3d 위치 지정이 없어서 그냥 중앙에 고정됩니다. */
+.avatar-preview .staff { position: relative; transform: none; width: 64px; height: 64px; }
+.avatar-preview .st-sprite.lpc-sprite,
+.avatar-preview .staff.walking .st-sprite.lpc-sprite { position: absolute; left: 0; top: 0; transform: scale(2.4); transform-origin: center; }
+.avatar-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.avatar-chips button, .avatar-tabs button {
+  padding: 5px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--win);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.avatar-chips button.active { background: var(--ink); color: var(--win); }
+.avatar-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.avatar-tabs button { font-size: 13px; padding: 6px 12px; }
+.avatar-tabs button.active { background: var(--green); color: var(--ink-fixed); }
+.avatar-label { margin: 0 0 6px; font-size: 12px; font-weight: 800; color: var(--ink-soft); }
+.avatar-section { margin-bottom: 14px; }
+.avatar-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.avatar-presets button { padding: 0; height: 62px; border: 2px solid var(--line, var(--ink)); border-radius: 10px; background: #e7f2ec; cursor: pointer; display: grid; place-items: center; overflow: hidden; }
+.avatar-style-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.avatar-style-btn {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 66px;
+  padding: 3px 3px 5px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #e7f2ec;
+  cursor: pointer;
+}
+.avatar-style-btn.active { border-color: var(--green-deep, var(--green)); box-shadow: 0 0 0 2px var(--green); }
+.avatar-style-btn.rough::after { content: "센 느낌"; position: absolute; top: 2px; right: 2px; font-size: 9px; font-weight: 800; background: #ffe1df; color: #7a1d18; border-radius: 4px; padding: 0 3px; }
+/* 썸네일 배경이 항상 밝은 고정색이라 글자도 고정 잉크색(--ink-fixed)을 씁니다 */
+.avatar-style-btn small { font-size: 10.5px; font-weight: 700; color: var(--ink-fixed); line-height: 1.2; text-align: center; white-space: nowrap; }
+.avatar-thumb { position: relative; display: block; width: 58px; height: 46px; overflow: hidden; }
+.avatar-thumb.full { width: 58px; height: 58px; }
+.avatar-thumb-sprite { position: absolute; width: 64px; height: 64px; transform-origin: 0 0; }
+.avatar-thumb-sprite span { position: absolute; inset: 0; background-repeat: no-repeat; background-size: 576px 256px; background-position: 0 -128px; image-rendering: pixelated; }
+.avatar-color-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.avatar-color-swatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.avatar-color-swatch.active { outline: 3px solid var(--sky-deep); outline-offset: 2px; }
+.avatar-pw { display: grid; gap: 5px; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin: 10px 0; }
+.avatar-pw input {
+  padding: 8px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--win);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+}
+/* 캐릭터 위에 뜨는 작은 "꾸미기" 버튼 — LPC로 전환된 캐릭터에 마우스를 올리면만 보입니다 */
+.st-customize-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px; height: 22px;
+  display: none;
+  align-items: center; justify-content: center;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 50%;
+  background: var(--yellow);
+  color: var(--ink-fixed);
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 5;
+}
+.staff:hover .st-customize-btn { display: flex; }
+.reminder-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.reminder-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--win);
+}
+.reminder-time { flex: 0 0 auto; font-weight: 900; color: var(--sky-deep); }
+.reminder-text { flex: 1; font-size: 14px; }
+.reminder-list li button {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.reminder-list li button:hover { color: #c1443c; }
+
+/* ── 일감이(업무)·짬짬이(개인) 할 일 관리자 모달 — .reminder-list 구조를 재사용하고
+   체크박스만 얹음. 구분(업무/개인)은 캐릭터 자체로 갈리므로 뱃지·선택 UI가 필요
+   없습니다(2026-09-11, 예전엔 캐릭터 1개+구분 태그였다가 캐릭터 2개로 분리) ── */
+.todo-count { margin: 14px 0 0; font-size: 13px; font-weight: 800; color: var(--sky-deep); }
+.todo-subhead { margin: 14px 0 0; font-size: 12px; font-weight: 800; color: var(--ink-faint); }
+.todo-archived-note { margin: 10px 0 0; font-size: 11px; color: var(--ink-faint); }
+.todo-list { margin-top: 8px; }
+.todo-check { flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 0; }
+.todo-check input { flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
+.todo-row.done .reminder-text { text-decoration: line-through; color: var(--ink-faint); }
+.todo-date { flex: 0 0 auto; margin-left: auto; font-size: 11px; font-weight: 700; color: var(--ink-faint); }
+/* 내용 수정(✏️) 클릭 시 체크박스 행 대신 뜨는 인라인 입력 행 */
+.todo-row-editing { padding: 6px 10px; }
+.todo-edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--win);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+}
+.todo-edit-input:focus { outline: 3px solid rgba(31, 147, 207, .35); outline-offset: 1px; }
+
+@media (max-width: 1100px) {
+  .world-viewport { height: min(62vh, 560px); }
+}
+@media (max-width: 680px) {
+  .world-viewport { height: 58vh; }
+  .panel .win-body { padding: 16px; }
+}
+
+/* ── 자라는 집(2026-10-02) — HouseWorld.tsx ─────────────────────
+   옆에서 잘라 본 집 한 채. 집 안쪽 그림은 화면 모드(소다·캔디·네온)와 상관없는 고정색이라
+   글자·테두리는 전부 --ink-fixed를 씁니다. */
+.house-viewport { height: auto; aspect-ratio: 16 / 9; max-height: 76vh; min-height: 300px; cursor: default; background: #8fd3f4; }
+.world-frame:fullscreen .house-viewport { aspect-ratio: auto; max-height: none; }
+.house-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; transition: transform .7s cubic-bezier(.3, .7, .2, 1); }
+.house-toolbar { justify-content: space-between; flex-wrap: wrap; align-items: flex-start; padding: 8px 12px; }
+.house-rooms, .house-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.hz-sky { position: absolute; inset: 0; transition: background 1s; }
+.hz-sun { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: #ffd35c; box-shadow: 0 0 30px 10px rgba(255, 211, 92, .45); transition: left 1s, top 1s; }
+.hz-sun.dusk { background: #ffb15c; box-shadow: 0 0 30px 10px rgba(255, 160, 90, .5); }
+.hz-sun.moon { background: #f4f1de; box-shadow: 0 0 26px 6px rgba(244, 241, 222, .4); }
+.hz-cloud { position: absolute; width: 10px; height: 10px; background: #fff;
+  box-shadow: 10px 0 0 #fff, 20px 0 0 #fff, 30px 0 0 #fff, 5px -9px 0 #fff, 15px -9px 0 #fff, 25px -9px 0 #fff; }
+.hz-star { position: absolute; width: 3px; height: 3px; background: #fff; opacity: .8; }
+.hz-ground { position: absolute; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, #8a6441 0 8px, #7b5838 8px 16px); }
+.hz-ground::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 16px; background: url(/kenney/win-grass.png) repeat-x; background-size: 16px 16px; image-rendering: pixelated; }
+.hz-path { position: absolute; height: 10px; background: repeating-linear-gradient(90deg, #d8c3a2 0 12px, #c9b18c 12px 14px); border-top: 2px solid #9a7a55; }
+.hz-tree { position: absolute; pointer-events: none; }
+.hz-tree img { display: block; image-rendering: pixelated; }
+.hz-outshade { position: absolute; inset: 0; pointer-events: none; transition: background 1s; }
+
+.hz-struct { position: absolute; left: 0; top: 0; z-index: 14; pointer-events: none; }
+.hz-struct > div { position: absolute; }
+.hz-slab { background: repeating-linear-gradient(90deg, #a8733f 0 22px, #93622f 22px 24px); border-top: 2px solid #5e3c1c; border-bottom: 2px solid #5e3c1c; }
+.hz-wall { background: #6d4a2a; border-left: 2px solid #4a3019; border-right: 2px solid #4a3019; }
+.hz-struct > .hz-shaftbg { background: #e9e4dc repeating-linear-gradient(90deg, rgba(0, 0, 0, .04) 0 2px, transparent 2px 14px); z-index: -1; }
+.hz-step { background: #c8955e; border-top: 2px solid #5e3c1c; }
+.hz-roof { background: url(/kenney/win-roof-red.png) repeat-x; background-size: 16px 16px; image-rendering: pixelated; border: 3px solid var(--ink-fixed); border-radius: 3px 3px 0 0; }
+.hz-roof.o { background-image: url(/kenney/win-roof-orange.png); }
+.hz-chimney { background: #a8433a; border: 3px solid var(--ink-fixed); border-bottom: 0; }
+.hz-frontdoor { background: #b0452f; border: 3px solid #4a3019; }
+
+.hz-room { position: absolute; z-index: 10; }
+.house-stage.moving .hz-room { transition: left .6s cubic-bezier(.3, .7, .2, 1), top .6s cubic-bezier(.3, .7, .2, 1); }
+.house-stage.moving .staff { transition: transform .6s cubic-bezier(.3, .7, .2, 1); }
+.hz-backwall { position: absolute; inset: 0; box-shadow: inset 0 -20px 0 rgba(0, 0, 0, .06); }
+.hz-backwall::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .2) 0 2px, transparent 2px 14px); }
+.hz-window { position: absolute; top: 24px; width: 46px; height: 40px; border: 4px solid #7a5230; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .4); transition: background 1s; }
+.hz-window::before, .hz-window::after { content: ""; position: absolute; background: #7a5230; }
+.hz-window::before { left: 50%; top: 0; bottom: 0; width: 3px; transform: translateX(-50%); }
+.hz-window::after { top: 50%; left: 0; right: 0; height: 3px; transform: translateY(-50%); }
+.hz-warm { position: absolute; inset: 0; background: rgba(255, 190, 110, .24); pointer-events: none; transition: opacity 1s; z-index: 6; }
+.hz-rug { position: absolute; bottom: 0; height: 8px; background: repeating-linear-gradient(90deg, #e9c98f 0 8px, #dcb676 8px 16px); border-top: 2px solid #b88a55; }
+.hz-mat { position: absolute; bottom: 0; height: 8px; background: repeating-linear-gradient(45deg, #9a6b3f 0 4px, #7d5230 4px 8px); border: 2px solid var(--ink-fixed); }
+.hz-furn { position: absolute; image-rendering: pixelated; filter: drop-shadow(0 2px 1px rgba(28, 58, 58, .25)); pointer-events: none; z-index: 1; }
+.hz-plate {
+  position: absolute; left: 8px; top: 6px; z-index: 8;
+  font: 700 13px var(--font-body); color: var(--ink-fixed); background: #fff; border: 2px solid var(--ink-fixed);
+  border-radius: 999px; padding: 1px 10px; white-space: nowrap; cursor: pointer;
+}
+.hz-plate:hover { background: #fff6cc; }
+.house-stage.swap .hz-plate { background: #fff6cc; border-style: dashed; }
+.house-stage.swap .hz-plate.sel { background: #ffd166; border-style: solid; }
+
+/* 물건(맡은 일) — 누르면 그 물건을 맡은 식구 카드가 열립니다 */
+.hz-item {
+  position: absolute; z-index: 3; padding: 0; border: 0; background: none; cursor: pointer; display: block;
+  filter: drop-shadow(0 2px 1px rgba(28, 58, 58, .25)); text-decoration: none;
+}
+.hz-item img { display: block; image-rendering: pixelated; }
+.hz-item:hover { filter: drop-shadow(0 0 3px #fff6a0) drop-shadow(0 2px 1px rgba(28, 58, 58, .25)); }
+.hz-room > .hz-plant, .hz-room > a.hz-item { bottom: 0; }
+.hz-plant { width: 20px; }
+.hz-leaf { position: absolute; left: 50%; bottom: 8px; width: 34px; transform-origin: 50% 100%; transition: transform .8s cubic-bezier(.3, 1.6, .5, 1); }
+.hz-chip {
+  position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -3px); white-space: nowrap; pointer-events: none;
+  font: 700 11px/1 var(--font-body); padding: 3px 6px; border-radius: 6px; border: 2px solid var(--ink-fixed);
+  background: #fff; color: var(--ink-fixed); font-variant-numeric: tabular-nums;
+}
+.hz-chip.alert { background: #ffe1df; }
+.hz-chip.good { background: #dff7ea; }
+.hz-plant .hz-chip { bottom: calc(100% + 40px); }
+.hz-ghost {
+  position: absolute; z-index: 13; border: 3px dashed rgba(28, 58, 58, .55); border-radius: 6px;
+  background: rgba(255, 255, 255, .28); display: grid; place-items: center; pointer-events: none;
+}
+.hz-ghost span { font: 700 13px var(--font-body); color: var(--ink-fixed); background: #fff; border: 2px dashed var(--ink-fixed); border-radius: 999px; padding: 2px 10px; }
+
+/* 사람·반려동물 — 이름표는 집 전체를 볼 때는 숨기고(20명 이름표가 겹치면 안 보여서),
+   방을 가까이 보거나 캐릭터에 마우스를 올렸을 때만 보여줍니다 */
+.hz-people { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 60; }
+.hz-people .staff { cursor: pointer; }
+.house-stage:not(.zoomed) .hz-people .staff:not(:hover):not(:focus-visible) .st-tag { opacity: 0; }
+.hz-people .st-tag { transition: opacity .2s; }
+.hz-people .staff:focus-visible { outline: none; }
+.hz-people .staff:focus-visible .st-tag { background: var(--yellow); }
+.hz-pet { z-index: 4; }
+.hz-pet .pet-sprite { width: 30px; height: 20px; cursor: default; }
+.house-hint { top: 10px; bottom: auto; }
+.house-hint.swap { background: #7a5a00; color: #fff; }
+
+/* ── 자라는 집 페이지 배치 — 위: 브랜드·조작 / 가운데: 집 + 오늘 집 상태 / 아래: 이 집의 물건들 ── */
+.house-top { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
+.house-top .t-brand, .house-top .t-controls { grid-column: auto; grid-row: auto; }
+.house-top .t-controls { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.house-top .t-controls .controls-kicker { flex: 1 1 220px; margin: 0; }
+.house-main { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 14px; align-items: start; }
+@media (max-width: 1100px) { .house-main { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .house-top { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── 오늘 집 상태 / 식구 카드 / 이 집의 물건들 — 타일 배경이 화면 모드를 따라가므로 --ink 계열 ── */
+.house-panel, .house-legend { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.hp-title { margin: 0; font-family: var(--font-head); font-weight: 400; font-size: 20px; color: var(--ink); }
+.hp-label { margin: 0 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--ink-soft); }
+.hp-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+.hp-shape { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.hp-shape span { font-size: 12px; font-weight: 800; color: var(--ink); background: var(--tile-bg-strong); border-radius: 999px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+.hp-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hp-rows button {
+  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; font: inherit; color: var(--ink);
+  background: var(--tile-bg-strong); border: 2px solid transparent; border-radius: 12px; padding: 7px 10px; cursor: pointer;
+}
+.hp-rows button:hover:not(:disabled) { border-color: var(--green); }
+.hp-rows button:disabled { cursor: default; }
+.hp-rows img { width: 26px; height: 26px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.hp-row-text { display: flex; flex-direction: column; min-width: 0; }
+.hp-row-text b { font-size: 13px; }
+.hp-row-text small { font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-val { margin-left: auto; font-size: 12.5px; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hp-val.alert { color: #e0504a; }
+.hp-link { font-size: 12.5px; font-weight: 800; color: var(--sky-deep); text-decoration: none; }
+.hp-back { align-self: flex-start; font: inherit; font-size: 12px; font-weight: 800; color: var(--ink); background: var(--tile-bg-strong); border: 0; border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.hp-person { display: flex; align-items: center; gap: 12px; }
+.hp-person h2 { margin: 0; font-family: var(--font-head); font-weight: 400; font-size: 20px; color: var(--ink); word-break: keep-all; }
+.hp-sub { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); }
+.hp-pic { width: 64px; height: 64px; flex: none; border-radius: 14px; background: #e7f2ec; display: grid; place-items: center; overflow: hidden; position: relative; }
+.hp-pic img { height: 56px; }
+.hp-sprite { position: absolute; left: -16px; top: -26px; width: 64px; height: 64px; transform: scale(1.5); transform-origin: 0 0; }
+.hp-sprite span { position: absolute; inset: 0; background-repeat: no-repeat; background-size: 576px 256px; background-position: 0 -128px; image-rendering: pixelated; }
+.hp-quote { margin: 0; font-size: 13px; color: var(--ink); background: var(--tile-bg-strong); border-radius: 12px; padding: 8px 12px; }
+.hp-acts { display: flex; flex-direction: column; gap: 8px; }
+.hp-go {
+  display: block; text-align: center; font: inherit; font-size: 13px; font-weight: 800; color: var(--ink); text-decoration: none;
+  background: var(--tile-bg-strong); border: 2px solid var(--ink); border-radius: 12px; padding: 9px 12px; cursor: pointer;
+}
+.hp-go.primary { background: var(--green); color: #0b241a; border-color: var(--ink-fixed); }
+.hp-item { display: flex; gap: 10px; align-items: flex-start; }
+.hp-item img { width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.hp-item b { font-size: 13px; color: var(--ink); }
+.hp-item p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+.house-legend { margin-top: 14px; }
+.hl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.hl-card {
+  display: flex; gap: 10px; align-items: flex-start; text-align: left; font: inherit; color: var(--ink);
+  background: var(--tile-bg-strong); border: 2px solid transparent; border-radius: 12px; padding: 10px 12px; cursor: pointer; min-width: 0;
+}
+.hl-card:hover:not(.static) { border-color: var(--green); }
+.hl-card.static { cursor: default; }
+.hl-card img { width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.hl-card span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hl-card b { font-size: 13.5px; }
+.hl-card small { font-size: 12px; font-weight: 700; color: var(--sky-deep); }
+.hl-card em { font-style: normal; font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+:root[data-mode="candy"] .hp-rows button, :root[data-mode="candy"] .hl-card { border-color: var(--ink-fixed); }
+/* 같은 방 이웃끼리 이름표가 겹치지 않게 번갈아 한 칸 위로 */
+.hz-people .staff.tag-up .st-tag { top: -80px; }
+.hz-people .staff.tag-up .st-bubble { margin-top: -28px; }
+.hz-people .st-tag b { font-size: 11px; }
+
+/* ── 일과(2026-10-03): 물건 반짝임 · 바쁜 타이핑 · 반려동물 반응 ── */
+.hz-item.pulse { animation: hzPulse .8s ease 2; }
+@keyframes hzPulse { 50% { transform: translateY(-5px) scale(1.12); } }
+/* 일감이·짬짬이 — 남은 일이 많을수록 빠르게 까딱(타이핑). LPC 스프라이트는 기본 transform이
+   scale(.75)라 키프레임에서도 같이 적어줘야 크기가 안 튑니다(명시도는 클래스 6개라 기존 규칙보다 셈) */
+.hz-people .staff.working.busy-hi .st-sprite.lpc-sprite { animation: lpcType .26s steps(1) infinite; }
+.hz-people .staff.working.busy-lo .st-sprite.lpc-sprite { animation: lpcType .7s steps(1) infinite; }
+@keyframes lpcType {
+  0%, 100% { transform: translate(-50%, -100%) scale(.75); }
+  50% { transform: translate(-50%, calc(-100% - 2px)) scale(.75); }
+}
+.hz-pet { cursor: pointer; }
+.hz-pet .pet-sprite { cursor: pointer; }
+.hz-pet .pet-reaction { top: -14px; font-size: 18px; }
+
+/* ── 손볼 방 불 · 오늘 있었던 일 · 모습 한 번에 고르기 · 휴대폰 보기(2026-10-03) ── */
+/* 방 이름표 불 — 손볼 일(실제 데이터)이 있는 방만 켜집니다 */
+.hz-plate.lit { padding-left: 24px; }
+.hz-lamp {
+  position: absolute; left: 7px; top: 50%; width: 11px; height: 11px; margin-top: -5.5px; border-radius: 50%;
+  background: #ffcf3f; box-shadow: 0 0 0 2px var(--ink-fixed), 0 0 12px 5px rgba(255, 196, 60, .85);
+  animation: hzLamp 1.8s ease-in-out infinite;
+}
+@keyframes hzLamp { 50% { box-shadow: 0 0 0 2px var(--ink-fixed), 0 0 4px 1px rgba(255, 196, 60, .45); background: #ffe28a; } }
+.house-rooms .hz-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 50%; background: #ffb72a; box-shadow: 0 0 6px 2px rgba(255, 183, 42, .7); vertical-align: middle; }
+@media (prefers-reduced-motion: reduce) { .hz-lamp { animation: none; } }
+
+.hp-lit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hp-lit button {
+  width: 100%; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 10px; align-items: center; text-align: left;
+  font: inherit; color: var(--ink); background: var(--tile-bg-strong); border: 2px solid transparent; border-radius: 12px; padding: 7px 10px; cursor: pointer;
+}
+.hp-lit button:hover { border-color: #ffb72a; }
+.hp-lit .hz-lamp { position: relative; left: 0; top: 0; margin: 0; grid-row: span 2; width: 10px; height: 10px; }
+.hp-lit b { font-size: 13px; }
+.hp-lit small { grid-column: 2; font-size: 11.5px; color: var(--ink-soft); }
+
+.hp-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.hp-log li { display: grid; grid-template-columns: 40px 20px minmax(0, 1fr); align-items: baseline; gap: 2px; padding: 5px 0; border-bottom: 1px dashed var(--line, rgba(28, 58, 58, .14)); }
+.hp-log li:last-child { border-bottom: 0; }
+.hp-log time { font-size: 11.5px; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hp-log p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; }
+.hp-more { margin-top: 4px; font: inherit; font-size: 12px; font-weight: 800; color: var(--sky-deep); background: none; border: 0; padding: 2px 0; cursor: pointer; }
+.hp-log-note { margin-top: 6px; font-size: 11.5px; }
+
+.batch-modal { width: min(900px, 100%); }
+.batch-body { display: flex; flex-direction: column; gap: 12px; max-height: min(82vh, 860px); overflow-y: auto; }
+.batch-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-soft); word-break: keep-all; }
+.batch-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.batch-actions button {
+  font: inherit; font-size: 12.5px; font-weight: 800; color: var(--ink); background: var(--tile-bg-strong);
+  border: 2px solid var(--ink-fixed); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+}
+.batch-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 8px; }
+.batch-grid li { position: relative; }
+.batch-pick {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; color: var(--ink);
+  background: var(--tile-bg-strong); border: 2px solid transparent; border-radius: 14px; padding: 8px 6px 7px; cursor: pointer;
+}
+.batch-grid li.on .batch-pick { border-color: var(--green); background: color-mix(in srgb, var(--green) 16%, var(--tile-bg-strong)); }
+.batch-pair { display: flex; align-items: center; gap: 4px; }
+.batch-pair .avatar-thumb { background: #e7f2ec; border-radius: 10px; }
+.batch-arrow { font-weight: 900; color: var(--ink-soft); }
+.batch-pick b { font-size: 12.5px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.batch-pick small { font-size: 11px; color: var(--ink-soft); }
+.batch-grid li.on .batch-pick small { color: #1f8a5b; font-weight: 800; }
+.batch-reroll {
+  position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; font-size: 14px; line-height: 1;
+  background: #fff; border: 2px solid var(--ink-fixed); border-radius: 50%; cursor: pointer;
+}
+.batch-progress { margin: 0; font-size: 13px; font-weight: 800; color: var(--ink); }
+
+/* 휴대폰 — 집을 실제 크기에 가깝게 그리고 손가락으로 넘겨 봄(층 버튼으로 이동) */
+.house-clip { position: absolute; inset: 0; overflow: hidden; }
+.house-viewport.narrow { aspect-ratio: auto; height: min(46vh, 360px); max-height: none; overflow: auto; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.house-viewport.narrow .house-clip { position: relative; inset: auto; }
+.house-viewport.narrow .house-stage { transition: none; }
+.house-viewport.narrow .house-hint { display: none; }
+.house-floors { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
+.house-floors button { font-variant-numeric: tabular-nums; }
+.house-floors::before { content: "층 이동"; align-self: center; font-size: 12px; font-weight: 800; color: var(--ink-soft); margin-right: 2px; }
+
+/* 쪽지 한 줄(2026-10-03) — 현관 게시판에 붙는 종이 + 위쪽 입력 칸 */
+.hz-note { position: absolute; width: 11px; height: 12px; background: #fff7c2; border: 1.5px solid var(--ink-fixed); box-shadow: 1px 1px 0 rgba(0, 0, 0, .2); animation: hzNoteIn .35s ease both; pointer-events: none; }
+.hz-note::before { content: ""; position: absolute; left: 3px; top: -3px; width: 4px; height: 4px; border-radius: 50%; background: #e0504a; }
+@keyframes hzNoteIn { from { transform: translateY(-8px) rotate(-14deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
+
+.note-bar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; padding: 12px 16px; margin-bottom: 14px; }
+.note-bar > b { font-family: var(--font-head); font-weight: 400; font-size: 18px; color: var(--ink); white-space: nowrap; }
+.note-form { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.note-form input[type="text"], .note-form input[type="password"], .note-form select {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--win); border: 2px solid var(--ink-fixed); border-radius: 12px; padding: 8px 12px; min-width: 0;
+}
+.note-form input[type="text"] { flex: 1 1 260px; }
+.note-form input[type="password"] { flex: 0 1 130px; }
+.note-form select { flex: 0 1 auto; font-size: 13px; }
+.note-form button {
+  font: inherit; font-size: 14px; font-weight: 800; color: #0b241a; background: var(--green); border: 2px solid var(--ink-fixed); border-radius: 12px; padding: 8px 16px; cursor: pointer; white-space: nowrap;
+}
+.note-form button:disabled { opacity: .55; cursor: default; }
+.note-hint { grid-column: 2; margin: 0; font-size: 12.5px; color: var(--ink-soft); min-height: 1.2em; word-break: keep-all; }
+.note-hint.ok { color: #1f8a5b; font-weight: 800; }
+.note-hint.err { color: #c1443c; font-weight: 800; }
+@media (max-width: 760px) {
+  .note-bar { grid-template-columns: minmax(0, 1fr); }
+  .note-hint { grid-column: 1; }
+}
+
+/* 오늘 집 상태 안에서 바로 체크하는 할 일(2026-10-06) */
+.hp-todos { margin: 4px 0 2px 46px; }
+.hp-todos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.hp-todos label { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: start; padding: 4px 6px; border-radius: 8px; font-size: 12.5px; line-height: 1.45; color: var(--ink); cursor: pointer; word-break: keep-all; overflow-wrap: anywhere; }
+.hp-todos label:hover { background: var(--tile-bg-strong); }
+.hp-todos input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--green); cursor: pointer; }
+.hp-rows .hp-todos .hp-more { width: auto; display: inline-block; margin: 2px 0 0 6px; padding: 2px 0; background: none; border: 0; border-radius: 0; font-size: 12px; font-weight: 800; color: var(--sky-deep); }
+
+/* 할 일 구분 꼬리표(업무/개인) — 기록 페이지에서 씀 */
+.tw-tag { font-size: 11px; font-weight: 800; border-radius: 999px; padding: 1px 7px; color: #0b241a; }
+.tw-tag.w { background: color-mix(in srgb, var(--green) 45%, white); }
+.tw-tag.p { background: color-mix(in srgb, var(--sky) 45%, white); }
+
+/* 오늘·이번 주 기록 — 날마다 내용으로(2026-10-07 개편) */
+.hist-wrap { max-width: 860px; }
+.hist-head { margin: 18px 0 14px; }
+.hist-head h1 { margin: 0 0 6px; font-family: var(--font-head); font-weight: 400; font-size: 28px; color: var(--ink); }
+.hist-head p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); word-break: keep-all; }
+.hist-days { display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
+.hist-day { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.hist-day.today { border-color: var(--green); }
+.hist-day h2 { margin: 0; font-family: var(--font-head); font-weight: 400; font-size: 19px; color: var(--ink); }
+.hist-label { margin: 0; font-size: 12px; font-weight: 800; color: var(--ink-soft); }
+.hist-none { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.hist-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.hist-list li { display: grid; grid-template-columns: 44px auto minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed rgba(28, 58, 58, .14); font-size: 14px; color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; }
+.hist-list li:last-child { border-bottom: 0; }
+.hist-list time { font-size: 12px; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hist-log summary { cursor: pointer; font-size: 12.5px; font-weight: 800; color: var(--sky-deep); }
+.hist-log[open] summary { margin-bottom: 4px; }
+
+/* 🏠 식구 들이기·관리(2026-10-07) */
+.sm-modal { width: min(720px, 100%); }
+.sm-body { display: flex; flex-direction: column; gap: 12px; max-height: min(84vh, 880px); overflow-y: auto; }
+.sm-form { display: flex; flex-direction: column; gap: 12px; }
+.sm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.sm-grid label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink-soft); min-width: 0; }
+.sm-grid input, .sm-grid select, .sm-grid textarea, .sm-list select {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--win); border: 2px solid var(--ink-fixed); border-radius: 10px; padding: 7px 10px; min-width: 0;
+}
+.sm-wide { grid-column: 1 / -1; }
+.sm-newroom { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--tile-bg-strong); }
+.sm-newroom small, .sm-look small { font-size: 12px; color: var(--ink-soft); }
+.sm-icons { display: flex; flex-wrap: wrap; gap: 4px; }
+.sm-icons button { width: 34px; height: 34px; font-size: 18px; border-radius: 10px; border: 2px solid transparent; background: var(--win); cursor: pointer; }
+.sm-icons button.active { border-color: var(--green); }
+.sm-look { display: flex; gap: 12px; align-items: center; }
+.sm-look .avatar-thumb { background: #e7f2ec; border-radius: 12px; flex: none; }
+.sm-manage { display: flex; flex-direction: column; gap: 12px; }
+.sm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sm-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--tile-bg-strong); }
+.sm-who { display: flex; flex-direction: column; min-width: 0; }
+.sm-who b { font-size: 13.5px; color: var(--ink); }
+.sm-who small { font-size: 11.5px; color: var(--ink-soft); }
+.sm-acts { display: flex; gap: 4px; }
+.sm-acts button { font: inherit; font-size: 12.5px; font-weight: 800; color: var(--ink); background: var(--win); border: 2px solid var(--ink-fixed); border-radius: 999px; padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+.sm-acts button:disabled { opacity: .45; cursor: default; }
+.sm-acts .sm-out.yes { background: #ffd9d6; }
+@media (max-width: 560px) {
+  .sm-grid { grid-template-columns: minmax(0, 1fr); }
+  .sm-list li { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 맨 아래 원작 표기 */
+.credit-foot { margin: 18px 0 4px; text-align: center; font-size: 12px; }
+.credit-foot p { margin: 0 0 6px; color: var(--ink-soft); }
+.credit-foot a { color: var(--ink-soft); text-decoration: none; }
+.credit-foot a:hover { text-decoration: underline; }

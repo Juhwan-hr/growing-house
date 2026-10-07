@@ -1,0 +1,392 @@
+@import url("https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;600;700;900&family=Baloo+2:wght@700;800&family=Noto+Sans+KR:wght@400;700;900&display=swap");
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   전면 개편(2026-08-29) — 라이트/다크 대신 3가지 "모드"로 전환합니다.
+   모드마다 색상뿐 아니라 카드 질감(유리/스티커/네온)·모서리 둥글기·그림자·폰트까지
+   전부 통째로 바뀝니다. 사무실 지도 안(픽셀아트)은 --ink-fixed만 그대로 참조해서
+   모드와 무관하게 고정된 모습을 유지합니다.
+   - soda(🫧소다버블, 기본값): 유리 블러 카드 + 비눗방울
+   - candy(🍭캔디팝): 흰 배경 + 두꺼운 잉크 테두리 + 하드 섀도
+   - night(✨네온나이트): 짙은 청록 배경 + 네온 글로우
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  /* 브랜드 그린·스카이는 세 모드 공통(고정) — CLAUDE.md의 "메인 컬러는 초록+하늘색" 규칙 */
+  --brand-green: #4ecb8f;
+  --brand-sky: #4fb8e8;
+  /* 사무실 지도 안(픽셀아트)은 모드와 무관하게 항상 이 고정 잉크색을 씁니다 */
+  --ink-fixed: #1c3a3a;
+}
+
+:root,
+:root[data-mode="soda"] {
+  --page-bg1: #eaf9f5;
+  --page-bg2: #dff3fb;
+  --ink: #16332f;
+  --ink-soft: #567673;
+  --ink-faint: #8fb0ab;
+  --accent: #1f7fac;
+  --tile-bg: rgba(255, 255, 255, .66);
+  --tile-bg-strong: rgba(255, 255, 255, .9);
+  --tile-border: rgba(255, 255, 255, .8);
+  --tile-border-width: 1px;
+  --tile-blur: blur(16px);
+  --tile-radius: 26px;
+  --tile-shadow: 0 14px 34px rgba(47, 125, 150, .16);
+  --btn-radius: 999px;
+  --btn-shadow: 0 3px 8px rgba(31, 127, 172, .14);
+  --font-head: "Jua", "Noto Sans KR", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+  --win: #ffffff;
+  --shadow: 0 10px 24px rgba(31, 127, 172, .16);
+  --sky: var(--brand-sky);
+  --sky-deep: var(--accent);
+  --green: var(--brand-green);
+  --green-deep: #279466;
+  --yellow: #ffe58a;
+}
+
+:root[data-mode="candy"] {
+  --page-bg1: #fdf8ee;
+  --page-bg2: #f2edfb;
+  --ink: #1c3a3a;
+  --ink-soft: #5c7570;
+  --ink-faint: #94aaa5;
+  --accent: #e8825f;
+  --tile-bg: #ffffff;
+  --tile-bg-strong: #ffffff;
+  --tile-border: var(--ink-fixed);
+  --tile-border-width: 4px;
+  --tile-blur: none;
+  --tile-radius: 20px;
+  --tile-shadow: 6px 6px 0 var(--ink-fixed);
+  --btn-radius: 14px;
+  --btn-shadow: 4px 4px 0 var(--ink-fixed);
+  --font-head: "Jua", "Noto Sans KR", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+  --win: #ffffff;
+  --shadow: 6px 6px 0 rgba(28, 58, 58, .3);
+  --sky: var(--brand-sky);
+  --sky-deep: #1f7fac;
+  --green: var(--brand-green);
+  --green-deep: #279466;
+  --yellow: #ffd94a;
+  --pink: #ff8fc0;
+}
+
+:root[data-mode="night"] {
+  --page-bg1: #0f2222;
+  --page-bg2: #16302c;
+  --ink: #eafff5;
+  --ink-soft: rgba(234, 255, 245, .62);
+  --ink-faint: rgba(234, 255, 245, .4);
+  --accent: #6ffcbe;
+  --tile-bg: rgba(22, 44, 40, .6);
+  --tile-bg-strong: rgba(30, 56, 50, .85);
+  --tile-border: rgba(111, 252, 190, .3);
+  --tile-border-width: 1px;
+  --tile-blur: blur(16px);
+  --tile-radius: 26px;
+  --tile-shadow: 0 0 0 1px rgba(111, 252, 190, .08), 0 16px 34px rgba(0, 0, 0, .5), 0 0 26px rgba(79, 230, 190, .1);
+  --btn-radius: 999px;
+  --btn-shadow: 0 0 16px rgba(111, 252, 190, .25);
+  --font-head: "Jua", "Noto Sans KR", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+  --win: #1c322e;
+  --shadow: 0 12px 30px rgba(0, 0, 0, .55);
+  --sky: #63d4ff;
+  --sky-deep: #6ffcbe;
+  --green: var(--brand-green);
+  --green-deep: #279466;
+  --yellow: #63d4ff;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; background: var(--page-bg1); }
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% 6%, rgba(79, 184, 232, .2), transparent 40%),
+    radial-gradient(circle at 92% 100%, rgba(78, 203, 143, .18), transparent 42%),
+    linear-gradient(160deg, var(--page-bg1), var(--page-bg2));
+  color: var(--ink);
+  font-family: var(--font-body);
+  transition: background .3s ease, color .3s ease;
+}
+button, input, select, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible { outline: 3px solid rgba(31, 147, 207, .35); outline-offset: 3px; }
+a { color: inherit; }
+::selection { background: var(--sky); color: white; }
+
+.page-shell { padding: 20px 14px 56px; }
+.wrap { width: min(2200px, 100%); margin-inline: auto; } /* 2026-09-07: 1600px 캡이 와이드 모니터에서 좌우 여백을 크게 남겨서 완화 */
+
+/* .win/.win-bar — 모달·히스토리 페이지에서 계속 씁니다. 모드별 --win/--ink/--shadow를
+   그대로 물려받아서 톤은 같이 바뀌지만, 창 틀 자체는 이번 개편 범위 밖입니다. */
+.win {
+  overflow: hidden;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 12px;
+  background: var(--win);
+  box-shadow: var(--shadow);
+  animation: rise .4s ease both;
+}
+.win-bar {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--ink-fixed);
+  background: linear-gradient(90deg, var(--sky), var(--green));
+  color: white;
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 400;
+  text-shadow: 0 1px rgba(28, 58, 58, .2);
+}
+.win-body { padding: 18px; }
+
+h1, h2, h3, p { word-break: keep-all; }
+h1 { max-width: 760px; margin: 0; font-size: clamp(24px, 3.4vw, 36px); font-family: var(--font-head); font-weight: 400; line-height: 1.3; }
+.eyebrow { margin: 0 0 6px; color: var(--sky-deep); font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+
+.hist-back { font-size: 13px; font-weight: 700; color: var(--sky-deep); text-decoration: none; }
+.hist-back:hover { text-decoration: underline; }
+.hist-link {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--sky-deep);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hist-link:hover { text-decoration: underline; }
+
+/* ── /history 페이지 헤더(이번 개편 범위 밖 — 예전 스타일 그대로 최소 유지) ── */
+.app-nav {
+  position: sticky;
+  z-index: 10;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 58px;
+  margin-bottom: 16px;
+  padding: 8px 10px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 13px;
+  background: var(--tile-bg-strong);
+  backdrop-filter: var(--tile-blur);
+  box-shadow: 4px 4px 0 rgba(28, 58, 58, .14);
+}
+.brand-chip { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; padding-right: 8px; cursor: pointer; }
+.brand-chip > span {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 8px;
+  background: var(--sky);
+  color: white;
+  box-shadow: 2px 2px 0 rgba(28, 58, 58, .22);
+  font: 400 17px var(--font-head);
+}
+.brand-chip b { overflow: hidden; font: 400 14px var(--font-head); text-overflow: ellipsis; white-space: nowrap; }
+.days-chip {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 999px;
+  background: var(--tile-bg-strong);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.clock-chip {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 2px solid var(--ink-fixed);
+  border-radius: 999px;
+  background: var(--win);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nav-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; }
+.confetti-piece {
+  position: absolute;
+  left: var(--l, 50%);
+  top: 50%;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  animation: confettiFly var(--dur, 1.2s) ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes confettiFly {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(.5); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -230%) rotate(var(--rot, 180deg)) scale(1); }
+}
+
+/* ── 홈페이지 모드 전환 캡슐 — 화면 위쪽 가운데 고정, 3가지 모드를 전환합니다 ── */
+.mode-switch {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.mode-switch-inner {
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 25, 23, .9);
+  padding: 6px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+}
+.mode-switch-inner button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, .6);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mode-switch-inner button.active { background: #fff; color: #16332f; }
+
+/* ── 벤토 그리드 — 홈페이지 메인 레이아웃 ─────────────────────
+   지도(왼쪽에 브랜드+버튼 좁은 칸을 두고 오른쪽에 큰 지도)를 중심으로, 아래에
+   위젯 3개(브리핑/명단/구역안내)가 각자 개성을 유지한 채 나란히 놓입니다.
+   .office-layout(예전 단순 스택, /history가 계속 씀)과는 별개 클래스입니다. */
+.bento {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: auto auto;
+  gap: 14px;
+}
+.tile {
+  background: var(--tile-bg);
+  backdrop-filter: var(--tile-blur);
+  border: var(--tile-border-width) solid var(--tile-border);
+  border-radius: var(--tile-radius);
+  box-shadow: var(--tile-shadow);
+  position: relative;
+  overflow: hidden;
+}
+.t-brand { grid-column: 1; grid-row: 1; padding: 18px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.t-brand .badge {
+  width: 40px; height: 40px; border-radius: 13px;
+  background: linear-gradient(140deg, var(--green), var(--sky));
+  display: grid; place-items: center; color: #fff; font-family: var(--font-head); font-size: 17px;
+}
+:root[data-mode="candy"] .t-brand .badge { border-radius: 50%; border: 3px solid var(--ink-fixed); }
+:root[data-mode="night"] .t-brand .badge { box-shadow: 0 0 14px rgba(79, 230, 190, .5); }
+.t-brand b { font-family: var(--font-head); font-weight: 400; font-size: 17px; color: var(--ink); }
+.t-brand .days-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--tile-bg-strong);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+:root[data-mode="candy"] .t-brand .days-badge { background: var(--pink); color: var(--ink-fixed); border: 2px solid var(--ink-fixed); }
+:root[data-mode="night"] .t-brand .days-badge { box-shadow: 0 0 10px rgba(111, 252, 190, .2); }
+/* 좁은 브랜드 타일 안에서는 예전 상단바용 알약 모양(.clock-chip)이 아니라 작은 글자 한
+   줄로만 보여줍니다 — 실시간 시각 표시(LiveClock.tsx) 기능 자체는 그대로 유지합니다. */
+.t-brand .clock-chip { display: block; padding: 0; border: none; background: none; color: var(--ink-soft); font-size: 10px; font-weight: 600; white-space: normal; }
+
+.t-controls { grid-column: 1; grid-row: 2; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+/* 예전 목업(v5 "캔디팝 스티커" 시안)의 히어로 문구("내 프로그램들이 귀여운 동료가
+   됐어요")를 좁은 버튼 카드 위에 미니 배너로 축약해 넣었습니다 — 전체 폭 히어로로
+   되돌리면 "타이틀→설명→버튼→지도" 층계 구조로 다시 회귀하는 셈이라, 버튼 카드
+   안에서만 자기 소개를 하는 작은 태그 형태로 남겼습니다. */
+.controls-kicker {
+  background: linear-gradient(150deg, var(--brand-green), #3ba876);
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+}
+.controls-kicker b { display: block; font-family: var(--font-head); font-weight: 400; font-size: 13px; line-height: 1.35; word-break: keep-all; }
+.controls-kicker span { display: block; font-size: 9.5px; opacity: .9; line-height: 1.4; margin-top: 4px; font-weight: 600; word-break: keep-all; }
+:root[data-mode="candy"] .controls-kicker { border: 3px solid var(--ink-fixed); box-shadow: 3px 3px 0 var(--ink-fixed); }
+:root[data-mode="night"] .controls-kicker { box-shadow: 0 0 14px rgba(111, 252, 190, .3); }
+.t-controls button {
+  padding: 9px 12px;
+  border: none;
+  border-radius: var(--btn-radius);
+  background: var(--tile-bg-strong);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--btn-shadow);
+  transition: transform .1s;
+}
+:root[data-mode="candy"] .t-controls button { border: 3px solid var(--ink-fixed); }
+.t-controls button:hover { transform: translateY(-1px); }
+.t-controls button:active { transform: translateY(0); }
+.t-controls button.active { background: linear-gradient(150deg, #7fe0ba, var(--green)); color: #0f3d29; }
+:root[data-mode="candy"] .t-controls button.active { background: var(--sky); color: #fff; }
+:root[data-mode="night"] .t-controls button.active { background: linear-gradient(150deg, var(--accent), var(--sky)); color: #06231b; box-shadow: 0 0 16px rgba(111, 252, 190, .45); }
+
+.t-map { grid-column: 2; grid-row: 1 / span 2; }
+
+.widgets-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.t-widget { padding: 18px; }
+.wlabel {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--tile-bg-strong);
+}
+.t-brief .wlabel { color: var(--sky-deep); }
+.t-roster .wlabel { color: var(--accent); }
+.t-guide .wlabel { color: var(--green-deep); }
+/* 캔디팝은 특유의 선명한 색 포인트(핑크/옐로/그린)가 라벨 칩에 살아있어야 "흰 배경만
+   남았다"는 느낌이 안 납니다 — 소다버블/네온나이트는 은은한 톤 텍스트로 충분하지만,
+   캔디팝만 칩 배경 자체를 확실한 색으로 채우고 잉크 테두리를 둘러 스티커 느낌을 냅니다. */
+:root[data-mode="candy"] .t-brief .wlabel { background: var(--pink); color: var(--ink-fixed); border: 2px solid var(--ink-fixed); }
+:root[data-mode="candy"] .t-roster .wlabel { background: var(--yellow); color: var(--ink-fixed); border: 2px solid var(--ink-fixed); }
+:root[data-mode="candy"] .t-guide .wlabel { background: var(--green); color: #0f3d29; border: 2px solid var(--ink-fixed); }
+:root[data-mode="night"] .wlabel { box-shadow: 0 0 10px rgba(111, 252, 190, .12); }
+
+@media (max-width: 900px) {
+  .bento { grid-template-columns: 1fr; }
+  .t-brand, .t-controls, .t-map { grid-column: 1; }
+  .t-map { grid-row: auto; }
+  .widgets-row { grid-template-columns: 1fr; }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+@media (max-width: 680px) {
+  .page-shell { padding: 12px 9px 40px; }
+  .win-body { padding: 14px; }
+  .app-nav { position: static; display: grid; padding: 8px; }
+  .brand-chip { justify-content: center; }
+}

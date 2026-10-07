@@ -1,0 +1,428 @@
+{
+  "face": [
+    {
+      "style": "happy",
+      "label": "웃음"
+    },
+    {
+      "style": "blush",
+      "label": "볼 발그레"
+    },
+    {
+      "style": "closed",
+      "label": "눈 감음"
+    },
+    {
+      "style": "shock",
+      "label": "깜짝"
+    },
+    {
+      "style": "eyeroll",
+      "label": "새침"
+    },
+    {
+      "style": "sad",
+      "label": "시무룩"
+    }
+  ],
+  "nose": [
+    {
+      "style": "button",
+      "label": "동글 코"
+    },
+    {
+      "style": "straight",
+      "label": "오똑한 코"
+    },
+    {
+      "style": "big",
+      "label": "큰 코"
+    }
+  ],
+  "eyebrows": [
+    {
+      "style": "thin",
+      "label": "얇은 눈썹"
+    },
+    {
+      "style": "thick",
+      "label": "진한 눈썹"
+    }
+  ],
+  "beard": [
+    {
+      "style": "5oclock_shadow",
+      "label": "까슬 수염"
+    },
+    {
+      "style": "trimmed",
+      "label": "다듬은 턱수염"
+    },
+    {
+      "style": "medium",
+      "label": "덥수룩 턱수염"
+    },
+    {
+      "style": "basic_mustache",
+      "label": "콧수염"
+    },
+    {
+      "style": "chevron",
+      "label": "팔자 콧수염"
+    },
+    {
+      "style": "french",
+      "label": "멋쟁이 콧수염"
+    }
+  ],
+  "glasses": [
+    {
+      "style": "round",
+      "label": "동그란 안경",
+      "colors": [
+        "black",
+        "brown",
+        "gray",
+        "navy",
+        "red",
+        "pink",
+        "gold",
+        "silver",
+        "sunglasses"
+      ]
+    },
+    {
+      "style": "nerd",
+      "label": "뿔테",
+      "colors": [
+        "black",
+        "brown",
+        "gray",
+        "navy",
+        "red",
+        "pink",
+        "gold",
+        "silver"
+      ]
+    },
+    {
+      "style": "secretary",
+      "label": "반달 안경",
+      "colors": [
+        "black",
+        "brown",
+        "gray",
+        "navy",
+        "red",
+        "pink",
+        "gold",
+        "silver"
+      ]
+    },
+    {
+      "style": "sunglasses",
+      "label": "선글라스",
+      "colors": [
+        "black",
+        "brown",
+        "gray",
+        "navy",
+        "red",
+        "pink",
+        "gold",
+        "silver",
+        "sunglasses"
+      ]
+    }
+  ],
+  "hat": [
+    {
+      "style": "bowler",
+      "label": "중절모",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    },
+    {
+      "style": "leather_cap",
+      "label": "깃털 모자",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    },
+    {
+      "style": "bonnie",
+      "label": "베레모",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    },
+    {
+      "style": "headband",
+      "label": "머리띠",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    },
+    {
+      "style": "bandana",
+      "label": "두건",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    },
+    {
+      "style": "christmas",
+      "label": "산타 모자",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan",
+        "red"
+      ]
+    }
+  ],
+  "outer": [
+    {
+      "style": "vest",
+      "label": "조끼",
+      "genders": [
+        "male"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "vest_open",
+      "label": "열린 조끼",
+      "genders": [
+        "male"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "jacket",
+      "label": "재킷",
+      "genders": [
+        "male"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "apron",
+      "label": "앞치마",
+      "genders": [
+        "male",
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "overalls",
+      "label": "멜빵",
+      "genders": [
+        "male",
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "bodice",
+      "label": "코르셋 조끼",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    }
+  ],
+  "torsoExtra": [
+    {
+      "style": "blouse",
+      "label": "블라우스",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "dress",
+      "label": "원피스",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    }
+  ]
+}
