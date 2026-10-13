@@ -65,6 +65,43 @@ function band([a, b]: [string, string]) {
   };
   return `linear-gradient(180deg, ${mix(0)} 0 25%, ${mix(0.33)} 25% 50%, ${mix(0.66)} 50% 75%, ${mix(1)} 75% 100%)`;
 }
+/** 하늘 한 가지 색 — 두 색의 가운데(띠 그라디언트를 넓게 늘리면 경계선이 보여서 한 색으로 통일) */
+function skyColor([a, b]: [string, string]) {
+  const p = (h: string) => parseInt(h.slice(1), 16);
+  const [x, y] = [p(a), p(b)];
+  const c = (s: number) => Math.round((((x >> s) & 255) + ((y >> s) & 255)) / 2);
+  return `rgb(${c(16)},${c(8)},${c(0)})`;
+}
+
+/** 집 뒤 먼 산(두 겹) — 픽셀 계단 모양 실루엣. 가까운 산은 낮고 진하게, 먼 산은 높고 흐리게 그려서 원근감 */
+function ridge(x0: number, x1: number, step: number, base: number, height: number, seed: number) {
+  const q = (v: number) => Math.round(v / 8) * 8;
+  let d = `M${x0} ${base}`;
+  for (let x = x0; x < x1; x += step) {
+    const h = height * (0.66 + 0.2 * Math.sin(x / 290 + seed) + 0.14 * Math.sin(x / 123 + seed * 2.1));
+    const y = q(base - h);
+    d += ` L${x} ${y} L${x + step} ${y}`;
+  }
+  return `${d} L${x1} ${base} Z`;
+}
+const Mountains = memo(function Mountains({ left, right, houseH, hazy }: { left: number; right: number; houseH: number; hazy: boolean }) {
+  const base = GY + 10;
+  const top = base - Math.max(320, houseH * 1.3) - 40;
+  return (
+    <svg
+      className={`hz-mountains${hazy ? " hazy" : ""}`}
+      style={{ left, top, width: right - left, height: base - top }}
+      viewBox={`${left} ${top} ${right - left} ${base - top}`}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      <path className="far" d={ridge(left, right, 24, base, Math.max(300, houseH * 1.25), 0.7)} />
+      <path className="mid" d={ridge(left, right, 16, base, Math.max(190, houseH * 0.78), 2.4)} />
+      <path className="near" d={ridge(left, right, 8, base, Math.max(90, houseH * 0.36), 4.2)} />
+    </svg>
+  );
+});
+
 function kstTimeOfDay(): TimeOfDay {
   const h = Number(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", hour: "numeric", hour12: false }).format(new Date())) % 24;
   return h >= 6 && h < 11 ? "morning" : h < 17 && h >= 11 ? "day" : h >= 17 && h < 20 ? "evening" : "night";
@@ -541,23 +578,43 @@ export default function HouseWorld({
           ref={stageRef}
           style={{ width: WORLD_W, height: WORLD_H }}
         >
-          <div className="hz-sky" style={{ background: band(SKY[time]) }} />
+          <div className="hz-sky" style={{ background: skyColor(SKY[time]) }} />
           {weather !== "sunny" ? <div className={`hz-overcast ${weather}`} /> : null}
           {weather === "rain" || weather === "snow" ? null : (
             <div className={`hz-sun${night ? " moon" : time === "evening" ? " dusk" : ""}${weather === "cloudy" ? " dim" : ""}`} style={sunStyle} />
           )}
-          {Array.from({ length: weather === "sunny" ? 4 : 8 }, (_, i) => (
-            <div
-              key={i}
-              className={`hz-cloud${weather === "sunny" ? "" : " grey"}`}
-              style={{ left: houseBox.x + houseBox.w * (0.08 + (i * 0.86) / (weather === "sunny" ? 3 : 7)), top: houseBox.y + 24 + (i % 2) * 34, opacity: night ? 0.15 : 0.9 }}
-            />
-          ))}
+          {Array.from({ length: weather === "sunny" ? 7 : 12 }, (_, i) => {
+            const far = i % 2 === 1;
+            const n = weather === "sunny" ? 7 : 12;
+            return (
+              <div
+                key={i}
+                className={`hz-cloud${far ? " far" : ""}${weather === "sunny" ? "" : " grey"}`}
+                style={{
+                  left: houseBox.x + houseBox.w * (0.04 + (i * 0.9) / (n - 1)),
+                  top: houseBox.y + (far ? 14 : 46) + ((i * 37) % 3) * 22,
+                  opacity: night ? 0.15 : far ? 0.6 : 0.92,
+                  animationDuration: `${38 + (i % 4) * 9}s`,
+                  animationDelay: `${-i * 7}s`,
+                }}
+              />
+            );
+          })}
+          {weather === "sunny" && !night
+            ? [0, 1, 2].map((i) => (
+                <i
+                  key={i}
+                  className="hz-bird"
+                  style={{ top: houseBox.y + 70 + i * 26, left: houseBox.x, ["--fly" as string]: `${houseBox.w}px`, animationDelay: `${-i * 9}s`, animationDuration: `${34 + i * 6}s` }}
+                />
+              ))
+            : null}
           {night && weather === "sunny"
             ? Array.from({ length: 26 }, (_, i) => (
                 <div key={i} className="hz-star" style={{ left: houseBox.x + ((i * 397) % houseBox.w), top: houseBox.y + ((i * 211) % 260) }} />
               ))
             : null}
+          <Mountains left={houseBox.x - 2600} right={houseBox.x + houseBox.w + 2600} houseH={GY - topY} hazy={weather !== "sunny"} />
           <div className="hz-ground" style={{ top: GY + 8 }} />
           <div className="hz-path" style={{ left: X0 - 200, top: GY + 8, width: 200 }} />
           <Tree src="win-tree-a" x={X0 - 150} w={58} />

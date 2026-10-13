@@ -438,6 +438,22 @@
 .hz-cloud { position: absolute; width: 10px; height: 10px; background: #fff;
   box-shadow: 10px 0 0 #fff, 20px 0 0 #fff, 30px 0 0 #fff, 5px -9px 0 #fff, 15px -9px 0 #fff, 25px -9px 0 #fff; }
 .hz-star { position: absolute; width: 3px; height: 3px; background: #fff; opacity: .8; }
+/* 구름 두 겹 — 먼 구름은 작고 흐리게. 천천히 좌우로 떠다님 */
+.hz-cloud { animation: hzDrift 40s ease-in-out infinite alternate; }
+.hz-cloud.far { transform: scale(.6); }
+@keyframes hzDrift { from { translate: -40px 0; } to { translate: 40px 0; } }
+/* 새 — 맑은 낮에만 집 위를 천천히 가로질러 날아감(픽셀 V자) */
+.hz-bird { position: absolute; width: 4px; height: 2px; pointer-events: none; background: transparent;
+  box-shadow: 0 0 0 #2b3a4a, 4px 2px 0 #2b3a4a, 8px 0 0 #2b3a4a, -4px -2px 0 #2b3a4a, 12px -2px 0 #2b3a4a;
+  animation: hzFly linear infinite; opacity: .75; }
+@keyframes hzFly { from { transform: translateX(0); } to { transform: translateX(var(--fly, 1200px)); } }
+/* 먼 산 세 겹 — 멀수록 하늘색에 가깝게(공기 원근) */
+.hz-mountains { position: absolute; pointer-events: none; overflow: visible; }
+.hz-mountains .far { fill: #a9cde0; }
+.hz-mountains .mid { fill: #94c4b8; }
+.hz-mountains .near { fill: #6fb38a; }
+.hz-mountains.hazy { filter: saturate(.75) brightness(.95); }
+@media (prefers-reduced-motion: reduce) { .hz-cloud, .hz-bird { animation: none; } }
 .hz-ground { position: absolute; left: -4000px; right: -4000px; bottom: -2000px; background: repeating-linear-gradient(0deg, #8a6441 0 8px, #7b5838 8px 16px); }
 .hz-ground::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 16px; background: url(/kenney/win-grass.png) repeat-x; background-size: 16px 16px; image-rendering: pixelated; }
 .hz-path { position: absolute; height: 10px; background: repeating-linear-gradient(90deg, #d8c3a2 0 12px, #c9b18c 12px 14px); border-top: 2px solid #9a7a55; }
