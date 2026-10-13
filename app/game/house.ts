@@ -69,9 +69,18 @@ export type HouseLayout = { width: number; floors: number; pos: Record<string, S
 /**
  * 집이 자라는 규칙:
  *  1) 새 방은 가장 낮은 층의 왼쪽 빈칸부터 채운다(아래층이 받쳐주는 칸에만).
- *  2) 층이 다 차면 한 층 올리되, 층 수가 "가로 칸 수 - 1"이 되면 대신 옆으로 한 칸 넓힌다.
+ *  2) 다 차면 "위로 한 층 올리기"와 "옆으로 한 칸 넓히기" 중 집 전체 모양(마당·지붕 포함)이 화면 비율(16:9)에
+ *     더 가까워지는 쪽을 고른다 — 옆으로만 길어져서 집이 점점 작게 보이지 않게(2026-10-13).
  * 방 순서가 같으면 항상 같은 모양이 나오고, 앞쪽 방의 자리는 뒤에 방이 붙어도 안 바뀝니다.
  */
+/** 화면(집 그림 칸) 비율 — 집이 이 모양에 가깝게 자랍니다 */
+const VIEW_ASPECT = 16 / 9;
+/** 화면에 보이는 집 상자 = 방들 + 양옆 마당·벽(가로) / 지붕 위 하늘·땅(세로). HouseWorld의 houseBox와 같은 셈 */
+const boxAspect = (width: number, floors: number) => (SW + width * BW + 2 * 160 + 18) / (floors * FH + 130);
+/** 다 찼을 때 위로 올릴지(true) 옆으로 넓힐지(false) — 결과 모양이 화면 비율에 더 가까운 쪽 */
+const growUp = (width: number, floors: number) =>
+  Math.abs(Math.log(boxAspect(width, floors + 1) / VIEW_ASPECT)) <= Math.abs(Math.log(boxAspect(width + 1, floors) / VIEW_ASPECT));
+
 function place(list: { id: string; w: number }[]) {
   let width = START_W;
   let floors = 1;
@@ -90,7 +99,7 @@ function place(list: { id: string; w: number }[]) {
         }
       }
       if (done) break;
-      if (floors < width - 1) {
+      if (growUp(width, floors)) {
         floors += 1;
         used.push(0);
         ev = "floor";

@@ -209,8 +209,8 @@ export default function HouseWorld({
         ? (() => { const r = roomBox(layout, room); return { x: r.x - 40, y: r.y - 60, w: r.w + 80, h: FH + 80 }; })()
         : houseBox;
       const s = Math.min(W / b.w, H / b.h, room ? 2.1 : 9);
-      // 남는 세로 공간은 하늘 쪽으로(땅이 과하게 보이지 않게)
-      const ty = room ? H / 2 - (b.y + b.h / 2) * s : H - (b.y + b.h) * s;
+      // 남는 세로 공간은 위(하늘) 45 : 아래(땅) 55로 — 집이 화면 가운데보다 살짝 위에 오게
+      const ty = room ? H / 2 - (b.y + b.h / 2) * s : (H - b.h * s) * 0.45 - b.y * s;
       stage.style.transform = `translate(${W / 2 - (b.x + b.w / 2) * s}px, ${ty}px) scale(${s})`;
     };
     apply();
