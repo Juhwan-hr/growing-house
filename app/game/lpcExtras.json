@@ -901,6 +901,30 @@
     {
       "style": "parted_side_bangs",
       "label": "앞가르마"
+    },
+    {
+      "style": "ponytail2",
+      "label": "포니테일 2"
+    },
+    {
+      "style": "high_ponytail",
+      "label": "높은 포니테일"
+    },
+    {
+      "style": "braid",
+      "label": "땋은 머리"
+    },
+    {
+      "style": "braid2",
+      "label": "땋은 머리 2"
+    },
+    {
+      "style": "bunches",
+      "label": "양쪽 묶음"
+    },
+    {
+      "style": "princess",
+      "label": "공주 머리"
     }
   ],
   "neck": [
@@ -958,5 +982,14 @@
         "copper"
       ]
     }
+  ],
+  "hairBg": [
+    "ponytail",
+    "ponytail2",
+    "high_ponytail",
+    "braid",
+    "braid2",
+    "bunches",
+    "princess"
   ]
 }

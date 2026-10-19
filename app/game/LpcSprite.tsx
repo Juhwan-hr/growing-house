@@ -1,4 +1,6 @@
 /** teen = "남자(슬림)" — LPC teen 몸. 머리카락·표정은 male 파일, 목 장식은 female 쪽 파일을 씁니다 */
+import EXTRAS from "./lpcExtras.json";
+
 export type LpcGender = "male" | "female" | "teen";
 
 type Part = { style: string; color: string };
@@ -28,6 +30,9 @@ export type LpcConfig = {
   /** 얼굴형 — "small"=작은 얼굴(어려 보임), "female"=여성 얼굴(남자(슬림) 몸에만). 없으면 기본 */
   headShape?: "small" | "female" | null;
 };
+
+/** 뒤쪽 층이 따로 있는 머리(포니테일·땋은 머리 등) — 몸보다 아래에 그려야 꼬리가 보입니다 */
+const HAIR_WITH_BG = new Set<string>(EXTRAS.hairBg);
 
 function bodyUrl(gender: LpcGender, skin: string) {
   return `/lpc/body/${gender}/${skin}.png`;
@@ -59,7 +64,9 @@ const faceGender = (c: LpcConfig): "male" | "female" => (headKind(c).startsWith(
 export function lpcLayerUrls(config: LpcConfig): { key: string; url: string }[] {
   const g = config.gender;
   const hairColor = config.hair?.color ?? "black";
-  const layers: { key: string; url: string }[] = [{ key: "body", url: bodyUrl(g, config.skin) }];
+  const layers: { key: string; url: string }[] = [];
+  if (config.hair && HAIR_WITH_BG.has(config.hair.style)) layers.push({ key: "hairbg", url: `/lpc/hairbg/${config.hair.style}/${hairColor}.png` });
+  layers.push({ key: "body", url: bodyUrl(g, config.skin) });
   if (config.feet) layers.push({ key: "feet", url: itemUrl("feet", config.feet.style, g, config.feet.color) });
   if (config.legs) layers.push({ key: "legs", url: itemUrl("legs", config.legs.style, g, config.legs.color) });
   if (config.torso) layers.push({ key: "torso", url: itemUrl("torso", config.torso.style, g, config.torso.color) });
