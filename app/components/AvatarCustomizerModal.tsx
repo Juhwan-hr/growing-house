@@ -50,30 +50,47 @@ const FOCUS: Record<string, { s: number; y: number }> = {
 };
 
 /** "무난하게 랜덤" — 대머리·민소매·튀는 머리색처럼 센 느낌이 나는 조합은 빼고 고릅니다
- *  (2026-10-01 "일부 캐릭터가 너무 험하게 생겼다"는 피드백). 피부색은 전부 그대로 씁니다. */
+ *  (2026-10-01 "일부 캐릭터가 너무 험하게 생겼다"는 피드백). 피부색은 전부 그대로 씁니다.
+ *  2026-10-20: 새로 구운 머리·옷·신발·목 장식·얼굴형도 섞어서 뽑습니다(여자 쪽 목록이 더 길어요). */
 const SOFT = {
   // buzzcut(짧은 삭발)은 작게 보면 대머리처럼 보여서 뺐습니다
-  hair: ["bob", "bob_side_part", "curly_short", "bangs_bun", "ponytail"],
+  hairShort: ["bob", "bob_side_part", "curly_short", "messy1", "messy3", "parted", "parted3", "swoop", "curtains", "bangs", "bangsshort", "cowlick", "mop", "page", "plain", "idol", "relm_short", "flat_top_fade"],
+  hairLong: ["bob", "bob_side_part", "curly_short", "bangs_bun", "ponytail", "long", "long_straight", "long_messy", "lob", "half_up", "pixie", "pigtails_bangs", "curly_long", "parted_side_bangs", "braid", "high_ponytail", "bunches", "princess", "ponytail2"],
   hairColor: ["black", "dark_brown", "chestnut", "blonde", "platinum"],
-  torso: ["tshirt", "shortsleeve", "longsleeve", "longsleeve_polo", "cardigan"],
+  torso: ["tshirt", "shortsleeve", "longsleeve", "longsleeve_polo", "cardigan", "tshirt_vneck", "tshirt_scoop", "tshirt_buttoned", "shortsleeve_polo", "longsleeve2", "longsleeve2_vneck", "longsleeve2_scoop", "longsleeve2_buttoned", "longsleeve2_cardigan", "longsleeves_cuffed"],
+  torsoFemale: ["blouse", "blouse_longsleeve", "tunic", "dress", "kimono"],
   torsoColor: ["white", "sky", "yellow", "pink", "teal", "gray"],
+  legsMale: ["pants", "pants2", "cuffed", "formal", "shorts"],
+  legsFemale: ["pants", "pants2", "cuffed", "leggings", "shorts", "skirt", "skirt_straight", "skirt_belle", "skirt_overskirt", "skirt_slit"],
   legsColor: ["navy", "gray", "tan", "brown"],
+  feet: ["shoes", "shoes", "shoes_revised", "shoes_sara", "boots", "boots_fold", "sandals"],
   feetColor: ["black", "brown", "white"],
   face: [null, null, "happy", "blush"],
 };
 const pick = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)];
-/** gender를 주면 그 성별은 그대로 두고 나머지만 무난하게 고릅니다(여러 명 한 번에 고르기에서 씀) */
-export function softRandom(keepGender?: LpcGender): LpcConfig {
-  const gender: LpcGender = keepGender ?? pick(["male", "female", "teen"] as const);
-  return {
+/** gender를 주면 그 성별은 그대로 두고 나머지만 무난하게 고릅니다(여러 명 한 번에 고르기에서 씀).
+ *  slimMale이면 남자는 남자(슬림) 몸으로 뽑습니다. */
+export function softRandom(keepGender?: LpcGender, slimMale = false): LpcConfig {
+  let gender: LpcGender = keepGender ?? pick(["male", "female", "teen"] as const);
+  if (slimMale && gender === "male") gender = "teen";
+  const female = gender === "female";
+  const torsoStyle = female && Math.random() < 0.3 ? pick(SOFT.torsoFemale) : pick(SOFT.torso);
+  const cfg: LpcConfig = {
     gender,
     skin: pick(SKIN_TONES).name,
-    hair: { style: pick(SOFT.hair), color: pick(SOFT.hairColor) },
-    torso: { style: pick(SOFT.torso), color: pick(SOFT.torsoColor) },
-    legs: { style: pick(gender === "female" ? ["pants", "shorts", "skirt"] : ["pants", "shorts"]), color: pick(SOFT.legsColor) },
-    feet: { style: "shoes", color: pick(SOFT.feetColor) },
+    hair: { style: pick(female ? SOFT.hairLong : SOFT.hairShort), color: pick(SOFT.hairColor) },
+    torso: { style: torsoStyle, color: pick(SOFT.torsoColor) },
+    legs: { style: pick(female ? SOFT.legsFemale : SOFT.legsMale), color: pick(SOFT.legsColor) },
+    feet: { style: pick(SOFT.feet), color: pick(SOFT.feetColor) },
     face: pick(SOFT.face),
   };
+  if (Math.random() < 0.2) {
+    const n = pick(NECK_STYLES);
+    cfg.neck = { style: n.style, color: pick(n.colors ?? ["black"]) };
+  }
+  if (Math.random() < 0.15) cfg.glasses = { style: pick(["round", "nerd", "secretary"]), color: pick(["black", "brown"]) };
+  if (Math.random() < 0.15) cfg.headShape = "small";
+  return cfg;
 }
 const PRESETS: LpcConfig[] = [
   { gender: "female", skin: "light", hair: { style: "bob", color: "chestnut" }, torso: { style: "cardigan", color: "pink" }, legs: { style: "skirt", color: "navy" }, feet: { style: "shoes", color: "brown" }, face: "happy" },
