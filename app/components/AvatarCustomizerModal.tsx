@@ -16,6 +16,7 @@ import {
   HAT_STYLES,
   LEGS_COLORS,
   LEGS_STYLES,
+  NECK_STYLES,
   NOSE_STYLES,
   OUTER_STYLES,
   SKIN_TONES,
@@ -26,7 +27,7 @@ import {
   type LpcExtraStyle,
 } from "../game/lpcCatalog";
 
-type Tab = "face" | "hair" | "beard" | "hat" | "torso" | "outer" | "legs" | "feet";
+type Tab = "face" | "hair" | "beard" | "hat" | "torso" | "outer" | "neck" | "legs" | "feet";
 const TABS: { key: Tab; label: string }[] = [
   { key: "face", label: "피부·얼굴" },
   { key: "hair", label: "머리" },
@@ -34,6 +35,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "hat", label: "모자" },
   { key: "torso", label: "상의" },
   { key: "outer", label: "겉옷" },
+  { key: "neck", label: "목" },
   { key: "legs", label: "하의" },
   { key: "feet", label: "신발" },
 ];
@@ -44,7 +46,7 @@ const TABS: { key: Tab; label: string }[] = [
 const FOCUS: Record<string, { s: number; y: number }> = {
   hair: { s: 1.6, y: 24 }, face: { s: 2.2, y: 27 }, nose: { s: 2.6, y: 28 }, eyebrows: { s: 2.6, y: 25 },
   beard: { s: 2.2, y: 31 }, glasses: { s: 2.4, y: 27 }, hat: { s: 1.5, y: 20 }, torso: { s: 1.6, y: 44 },
-  outer: { s: 1.5, y: 44 }, legs: { s: 1.6, y: 54 }, feet: { s: 2, y: 61 },
+  outer: { s: 1.5, y: 44 }, neck: { s: 2.2, y: 37 }, legs: { s: 1.6, y: 54 }, feet: { s: 2, y: 61 },
 };
 
 /** "무난하게 랜덤" — 대머리·민소매·튀는 머리색처럼 센 느낌이 나는 조합은 빼고 고릅니다
@@ -62,7 +64,7 @@ const SOFT = {
 const pick = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)];
 /** gender를 주면 그 성별은 그대로 두고 나머지만 무난하게 고릅니다(여러 명 한 번에 고르기에서 씀) */
 export function softRandom(keepGender?: LpcGender): LpcConfig {
-  const gender: LpcGender = keepGender ?? pick(["male", "female"] as const);
+  const gender: LpcGender = keepGender ?? pick(["male", "female", "teen"] as const);
   return {
     gender,
     skin: pick(SKIN_TONES).name,
@@ -98,7 +100,7 @@ function fitGender(d: LpcConfig, gender: LpcGender): LpcConfig {
   return {
     ...d,
     gender,
-    legs: d.legs?.style === "skirt" && gender === "male" ? { style: "pants", color: d.legs.color } : d.legs,
+    legs: d.legs && gender !== "female" && (d.legs.style === "skirt" || LEGS_STYLES.find((l) => l.style === d.legs!.style)?.femaleOnly) ? { style: "pants", color: d.legs.color } : d.legs,
     torso: torsoExtra && !allows(torsoExtra, gender) ? { style: "tshirt", color: "white" } : d.torso,
     outer: outer && !allows(outer, gender) ? null : d.outer ?? null,
   };
@@ -147,7 +149,7 @@ export default function AvatarCustomizerModal({
   const torsoStyles: LpcExtraStyle[] = [...TORSO_STYLES, ...TORSO_EXTRA_STYLES.filter((s) => allows(s, g))];
   const torsoExtra = TORSO_EXTRA_STYLES.find((s) => s.style === draft.torso?.style);
   const torsoColors = torsoExtra ? swatchesFor(torsoExtra.colors ?? []) : CLOTH_COLORS;
-  const legsStyles = LEGS_STYLES.filter((s) => !("femaleOnly" in s && s.femaleOnly) || g === "female");
+  const legsStyles = LEGS_STYLES.filter((s) => !s.femaleOnly || g === "female");
   const outerStyles = OUTER_STYLES.filter((s) => allows(s, g));
 
   /** 스타일 하나를 고르면 색은 지금 색을 유지하되, 그 스타일에 없는 색이면 첫 색으로 */
@@ -183,9 +185,9 @@ export default function AvatarCustomizerModal({
               </button>
             </div>
             <div className="avatar-chips">
-              {(["female", "male"] as const).map((gg) => (
+              {(["female", "male", "teen"] as const).map((gg) => (
                 <button key={gg} type="button" className={g === gg ? "active" : ""} onClick={() => setDraft((d) => fitGender(d, gg))}>
-                  {gg === "female" ? "여자" : "남자"}
+                  {gg === "female" ? "여자" : gg === "male" ? "남자" : "남자(슬림)"}
                 </button>
               ))}
             </div>
@@ -286,13 +288,25 @@ export default function AvatarCustomizerModal({
             ) : null}
 
             {tab === "outer" ? (
-              <Section title={g === "male" ? "겉옷 (상의 위에 덧입어요)" : "겉옷 (상의 위에 덧입어요 · 조끼·재킷은 남자 몸에만 있어요)"}>
+              <Section title={g === "male" ? "겉옷 (상의 위에 덧입어요)" : g === "teen" ? "겉옷 (상의 위에 덧입어요 · 조끼·재킷·앞치마는 슬림 몸에 없어요)" : "겉옷 (상의 위에 덧입어요 · 조끼·재킷은 남자 몸에만 있어요)"}>
                 <StyleGrid draft={draft} focus="outer" none="없음" items={outerStyles} current={draft.outer?.style ?? null}
                   make={(s) => ({ outer: s ? partWith(outerStyles, s, draft.outer?.color) : null })}
                   onPick={(s) => patch({ outer: s ? partWith(outerStyles, s, draft.outer?.color) : null })} />
                 {draft.outer ? (
                   <ColorRow colors={swatchesFor(OUTER_STYLES.find((s) => s.style === draft.outer?.style)?.colors ?? [])}
                     current={draft.outer.color} onPick={(c) => patch({ outer: { style: draft.outer!.style, color: c } })} />
+                ) : null}
+              </Section>
+            ) : null}
+
+            {tab === "neck" ? (
+              <Section title="목도리·넥타이·목걸이">
+                <StyleGrid draft={draft} focus="neck" none="없음" items={NECK_STYLES} current={draft.neck?.style ?? null}
+                  make={(s) => ({ neck: s ? partWith(NECK_STYLES, s, draft.neck?.color) : null })}
+                  onPick={(s) => patch({ neck: s ? partWith(NECK_STYLES, s, draft.neck?.color) : null })} />
+                {draft.neck ? (
+                  <ColorRow colors={swatchesFor(NECK_STYLES.find((s) => s.style === draft.neck?.style)?.colors ?? [])}
+                    current={draft.neck.color} onPick={(c) => patch({ neck: { style: draft.neck!.style, color: c } })} />
                 ) : null}
               </Section>
             ) : null}

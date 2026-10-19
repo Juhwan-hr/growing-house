@@ -9,7 +9,7 @@
 ### 식구 캐릭터 — Universal LPC Spritesheet Character Generator
 - `public/lpc/` 아래 그림. 출처: https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator
 - 라이선스: CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0 등(파일마다 다름). 파일별 작가·라이선스·원본 주소는 [CREDITS-LPC.csv](CREDITS-LPC.csv)에 있습니다.
-- 작가: Benjamin K. Smith (BenCreating), Bluecarrot16, Daniel Eddeland (daneeklu), Durrani, Eliza Wyatt (ElizaWy), ElizaWy, Evert, Fabzy, JaidynReiman, Joe White, Johannes Sjölund (wulax), Lanea Zimmerman (Sharm), Mandi Paugh, Manuel Riecke (MrBeast), Marcel van de Steeg (MadMarcel), Matthew Krohn (Makrohn), Matthew Krohn (makrohn), Michael Whitlock (bigbeargames), MuffinElZangano, Nila122, Nyom, Pierre Vigier (pvigier), Sander Frenken (castelonia), Stephen Challener (Redshrike), Thane Brimhall (pennomi), TheraHedwig, William.Thompsonj, Zi Ye, bluecarrot16, dalonedrau, laetissima, thecilekli
+- 작가: Benjamin K. Smith (BenCreating), Bluecarrot16, Daniel Eddeland (daneeklu), Durrani, Eliza Wyatt (ElizaWy), ElizaWy, Evert, Fabzy, JaidynReiman, Joe White, Johannes Sjölund (wulax), Lanea Zimmerman (Sharm), Mandi Paugh, Manuel Riecke (MrBeast), Marcel van de Steeg (MadMarcel), Matthew Krohn (Makrohn), Matthew Krohn (makrohn), Michael Whitlock (bigbeargames), MuffinElZangano, Nila122, Nyom, Pierre Vigier (pvigier), Sander Frenken (castelonia), Stephen Challener (Redshrike), Thane Brimhall (pennomi), TheraHedwig, William.Thompsonj, Zi Ye, bluecarrot16, dalonedrau, laetissima, thecilekli, Charles Sanchez (CharlesGabriel), DarkwallLKE, Emilio J. Sanchez-Sierra, kcilds/Rocetti/Eredah, Luke Mehl, Makrohn, Napsio (Vitruvian Studio), Page, Radomir Dopieralski
 - 일부 색은 원본 팔레트를 다시 칠해서(recolor) 썼습니다.
 
 ### 강아지·고양이 — [LPC] Cats and Dogs

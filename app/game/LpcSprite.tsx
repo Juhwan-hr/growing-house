@@ -1,4 +1,5 @@
-export type LpcGender = "male" | "female";
+/** teen = "남자(슬림)" — LPC teen 몸. 머리카락·표정은 male 파일, 목 장식은 female 쪽 파일을 씁니다 */
+export type LpcGender = "male" | "female" | "teen";
 
 type Part = { style: string; color: string };
 
@@ -22,6 +23,8 @@ export type LpcConfig = {
   hat?: Part | null;
   /** 상의 위에 덧입는 겉옷(조끼·재킷·앞치마·멜빵 등) */
   outer?: Part | null;
+  /** 목도리·넥타이·나비넥타이·목걸이 (2026-10-20) */
+  neck?: Part | null;
 };
 
 function bodyUrl(gender: LpcGender, skin: string) {
@@ -31,6 +34,9 @@ function itemUrl(category: string, style: string, gender: LpcGender, color: stri
   return `/lpc/${category}/${style}/${gender}/${color}.png`;
 }
 
+/** teen 은 머리카락·표정 그림이 따로 없어서 male 파일을 씁니다 */
+const asMale = (g: LpcGender): "male" | "female" => (g === "teen" ? "male" : g);
+
 function headUrl(gender: LpcGender, skin: string) {
   return `/lpc/head/${gender}/${skin}.png`;
 }
@@ -38,7 +44,7 @@ function headUrl(gender: LpcGender, skin: string) {
 /**
  * 한 캐릭터를 이루는 레이어 이미지 주소들(아래 → 위 순서). LpcSprite와 꾸미기 화면의
  * 썸네일이 같이 씁니다. 순서는 LPC 원본 zPos 기준:
- * 몸 0 < 신발 15 < 하의 20 < 상의 30~35 < 겉옷 38~55 < 얼굴 100 < 표정 101 < 코 105
+ * 몸 0 < 신발 15 < 하의 20 < 상의 30~35 < 겉옷 38~55 < 목 장식 80~90 < 얼굴 100 < 표정 101 < 코 105
  * < 눈썹 106 < 수염 110 < 안경 115 < 머리 120 < 모자 130.
  * **`body`(몸통) 레이어에는 눈·코·입이 없습니다** — 얼굴은 `head`라는 별도 레이어에 있고,
  * 이걸 빼먹으면 캐릭터 얼굴이 빈 살구색 덩어리로 보입니다.
@@ -52,12 +58,13 @@ export function lpcLayerUrls(config: LpcConfig): { key: string; url: string }[] 
   if (config.torso) layers.push({ key: "torso", url: itemUrl("torso", config.torso.style, g, config.torso.color) });
   if (config.outer) layers.push({ key: "outer", url: itemUrl("outer", config.outer.style, g, config.outer.color) });
   layers.push({ key: "head", url: headUrl(g, config.skin) });
-  if (config.face) layers.push({ key: "face", url: `/lpc/face/${config.face}/${g}/${config.skin}.png` });
+  if (config.neck) layers.push({ key: "neck", url: `/lpc/neck/${config.neck.style}/${g === "male" ? "male" : "female"}/${config.neck.color}.png` });
+  if (config.face) layers.push({ key: "face", url: `/lpc/face/${config.face}/${asMale(g)}/${config.skin}.png` });
   if (config.nose) layers.push({ key: "nose", url: `/lpc/nose/${config.nose}/${config.skin}.png` });
   if (config.eyebrows) layers.push({ key: "eyebrows", url: `/lpc/eyebrows/${config.eyebrows}/${hairColor}.png` });
   if (config.beard) layers.push({ key: "beard", url: `/lpc/beard/${config.beard}/${hairColor}.png` });
   if (config.glasses) layers.push({ key: "glasses", url: `/lpc/glasses/${config.glasses.style}/${config.glasses.color}.png` });
-  if (config.hair) layers.push({ key: "hair", url: itemUrl("hair", config.hair.style, g, config.hair.color) });
+  if (config.hair) layers.push({ key: "hair", url: itemUrl("hair", config.hair.style, asMale(g), config.hair.color) });
   if (config.hat) layers.push({ key: "hat", url: `/lpc/hat/${config.hat.style}/${config.hat.color}.png` });
   return layers;
 }

@@ -249,6 +249,152 @@
         "tan",
         "red"
       ]
+    },
+    {
+      "style": "hood",
+      "label": "후드",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "bandana2",
+      "label": "두건 2",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "kerchief",
+      "label": "스카프 두건",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "hairtie",
+      "label": "머리끈",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "tied",
+      "label": "묶은 머리띠",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "tophat",
+      "label": "실크햇",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "crown",
+      "label": "왕관",
+      "colors": [
+        "gold",
+        "silver",
+        "bronze",
+        "brass"
+      ]
+    },
+    {
+      "style": "tiara",
+      "label": "티아라",
+      "colors": [
+        "gold",
+        "silver",
+        "bronze",
+        "brass"
+      ]
+    },
+    {
+      "style": "elf",
+      "label": "요정 모자",
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
     }
   ],
   "outer": [
@@ -342,7 +488,8 @@
       "label": "멜빵",
       "genders": [
         "male",
-        "female"
+        "female",
+        "teen"
       ],
       "colors": [
         "white",
@@ -364,6 +511,29 @@
       "label": "코르셋 조끼",
       "genders": [
         "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "suspenders",
+      "label": "멜빵 바지끈",
+      "genders": [
+        "male",
+        "female",
+        "teen"
       ],
       "colors": [
         "white",
@@ -422,6 +592,276 @@
         "maroon",
         "brown",
         "tan"
+      ]
+    }
+  ],
+  "torsoMore": [
+    {
+      "style": "tshirt_vneck",
+      "label": "브이넥 티셔츠"
+    },
+    {
+      "style": "tshirt_scoop",
+      "label": "둥근넥 티셔츠"
+    },
+    {
+      "style": "tshirt_buttoned",
+      "label": "단추 티셔츠"
+    },
+    {
+      "style": "shortsleeve_polo",
+      "label": "반팔 폴로"
+    },
+    {
+      "style": "longsleeve2",
+      "label": "긴팔 티"
+    },
+    {
+      "style": "longsleeve2_vneck",
+      "label": "긴팔 브이넥"
+    },
+    {
+      "style": "longsleeve2_scoop",
+      "label": "긴팔 둥근넥"
+    },
+    {
+      "style": "longsleeve2_buttoned",
+      "label": "긴팔 단추"
+    },
+    {
+      "style": "longsleeve2_cardigan",
+      "label": "긴팔 가디건"
+    },
+    {
+      "style": "longsleeves_cuffed",
+      "label": "소매 접은 셔츠"
+    },
+    {
+      "style": "sleeveless2_vneck",
+      "label": "민소매 브이넥"
+    }
+  ],
+  "legsMore": [
+    {
+      "style": "pants2",
+      "label": "일자 바지"
+    },
+    {
+      "style": "cuffed",
+      "label": "밑단 접은 바지"
+    },
+    {
+      "style": "formal_striped",
+      "label": "줄무늬 정장 바지"
+    },
+    {
+      "style": "leggings",
+      "label": "레깅스"
+    },
+    {
+      "style": "short_shorts",
+      "label": "짧은 반바지"
+    },
+    {
+      "style": "skirt_straight",
+      "label": "일자 치마",
+      "femaleOnly": true
+    },
+    {
+      "style": "skirt_belle",
+      "label": "퍼진 치마",
+      "femaleOnly": true
+    }
+  ],
+  "feetMore": [
+    {
+      "style": "shoes_revised",
+      "label": "단화"
+    },
+    {
+      "style": "shoes_sara",
+      "label": "굽 낮은 신발"
+    },
+    {
+      "style": "boots_fold",
+      "label": "접은 부츠"
+    },
+    {
+      "style": "boots_rimmed",
+      "label": "목 있는 부츠"
+    },
+    {
+      "style": "slippers",
+      "label": "슬리퍼"
+    }
+  ],
+  "hairMore": [
+    {
+      "style": "messy1",
+      "label": "헝클어진 머리"
+    },
+    {
+      "style": "messy3",
+      "label": "자연스러운 짧은 머리"
+    },
+    {
+      "style": "parted",
+      "label": "가르마"
+    },
+    {
+      "style": "parted3",
+      "label": "옆 가르마"
+    },
+    {
+      "style": "swoop",
+      "label": "쓸어넘긴 머리"
+    },
+    {
+      "style": "curtains",
+      "label": "커튼 머리"
+    },
+    {
+      "style": "bangs",
+      "label": "앞머리"
+    },
+    {
+      "style": "bangsshort",
+      "label": "짧은 앞머리"
+    },
+    {
+      "style": "cowlick",
+      "label": "삐죽 머리"
+    },
+    {
+      "style": "bedhead",
+      "label": "까치집"
+    },
+    {
+      "style": "mop",
+      "label": "더벅머리"
+    },
+    {
+      "style": "page",
+      "label": "단정한 단발"
+    },
+    {
+      "style": "plain",
+      "label": "기본 머리"
+    },
+    {
+      "style": "idol",
+      "label": "아이돌 머리"
+    },
+    {
+      "style": "relm_short",
+      "label": "소년 머리"
+    },
+    {
+      "style": "flat_top_fade",
+      "label": "플랫탑"
+    },
+    {
+      "style": "twists_fade",
+      "label": "트위스트"
+    },
+    {
+      "style": "spiked",
+      "label": "뾰족 머리"
+    },
+    {
+      "style": "long",
+      "label": "긴 머리"
+    },
+    {
+      "style": "long_straight",
+      "label": "긴 생머리"
+    },
+    {
+      "style": "long_messy",
+      "label": "긴 웨이브"
+    },
+    {
+      "style": "loose",
+      "label": "풀어헤친 머리"
+    },
+    {
+      "style": "lob",
+      "label": "긴 단발"
+    },
+    {
+      "style": "half_up",
+      "label": "반묶음"
+    },
+    {
+      "style": "pixie",
+      "label": "픽시컷"
+    },
+    {
+      "style": "pigtails_bangs",
+      "label": "양갈래"
+    },
+    {
+      "style": "curly_long",
+      "label": "긴 곱슬"
+    },
+    {
+      "style": "parted_side_bangs",
+      "label": "앞가르마"
+    }
+  ],
+  "neck": [
+    {
+      "style": "scarf",
+      "label": "목도리",
+      "colors": [
+        "black",
+        "brown",
+        "gray",
+        "red",
+        "white",
+        "blue"
+      ]
+    },
+    {
+      "style": "necktie",
+      "label": "넥타이",
+      "colors": [
+        "black",
+        "navy",
+        "red",
+        "white",
+        "gray",
+        "forest",
+        "maroon",
+        "sky",
+        "yellow",
+        "pink"
+      ]
+    },
+    {
+      "style": "bowtie",
+      "label": "나비넥타이",
+      "colors": [
+        "black",
+        "navy",
+        "red",
+        "white",
+        "gray",
+        "forest",
+        "maroon",
+        "sky",
+        "yellow",
+        "pink"
+      ]
+    },
+    {
+      "style": "necklace",
+      "label": "목걸이",
+      "colors": [
+        "gold",
+        "silver",
+        "bronze",
+        "copper"
       ]
     }
   ]

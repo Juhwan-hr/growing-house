@@ -8,7 +8,7 @@ import EXTRAS from "./lpcExtras.json";
 
 export type LpcColorSwatch = { name: string; hex: string };
 
-export const HAIR_STYLES = [
+const BASE_HAIR = [
   { style: "afro", label: "아프로" },
   { style: "bob", label: "단발" },
   { style: "bob_side_part", label: "가르마 단발" },
@@ -18,6 +18,8 @@ export const HAIR_STYLES = [
   { style: "bangs_bun", label: "올림머리" },
   { style: "ponytail", label: "포니테일" },
 ] as const;
+/** 기본 8종 + 2026-10-20에 더한 머리(assets-raw/build-lpc-more.mjs가 lpcExtras.json에 적음) */
+export const HAIR_STYLES: { style: string; label: string }[] = [...BASE_HAIR, ...EXTRAS.hairMore];
 
 export const HAIR_COLORS: LpcColorSwatch[] = [
   { name: "black", hex: "#31313E" },
@@ -30,7 +32,7 @@ export const HAIR_COLORS: LpcColorSwatch[] = [
   { name: "navy", hex: "#3C49AD" },
 ];
 
-export const TORSO_STYLES = [
+const BASE_TORSO = [
   { style: "shortsleeve", label: "반팔" },
   { style: "tshirt", label: "티셔츠" },
   { style: "longsleeve", label: "긴팔" },
@@ -38,19 +40,22 @@ export const TORSO_STYLES = [
   { style: "cardigan", label: "가디건" },
   { style: "sleeveless", label: "민소매" },
 ] as const;
+export const TORSO_STYLES: { style: string; label: string }[] = [...BASE_TORSO, ...EXTRAS.torsoMore];
 
-export const LEGS_STYLES = [
+const BASE_LEGS = [
   { style: "pants", label: "바지" },
   { style: "formal", label: "정장 바지" },
   { style: "shorts", label: "반바지" },
   { style: "skirt", label: "치마", femaleOnly: true },
 ] as const;
+export const LEGS_STYLES: { style: string; label: string; femaleOnly?: boolean }[] = [...BASE_LEGS, ...EXTRAS.legsMore];
 
-export const FEET_STYLES = [
+const BASE_FEET = [
   { style: "shoes", label: "신발" },
   { style: "boots", label: "부츠" },
   { style: "sandals", label: "샌들" },
 ] as const;
+export const FEET_STYLES: { style: string; label: string }[] = [...BASE_FEET, ...EXTRAS.feetMore];
 
 export const CLOTH_COLORS: LpcColorSwatch[] = [
   { name: "white", hex: "#E5E6C7" },
@@ -101,6 +106,8 @@ export const BEARD_STYLES: LpcExtraStyle[] = EXTRAS.beard;
 export const GLASSES_STYLES: LpcExtraStyle[] = EXTRAS.glasses;
 export const HAT_STYLES: LpcExtraStyle[] = EXTRAS.hat;
 export const OUTER_STYLES: LpcExtraStyle[] = EXTRAS.outer;
+/** 목도리·넥타이·나비넥타이·목걸이 */
+export const NECK_STYLES: LpcExtraStyle[] = EXTRAS.neck;
 /** 여성 전용 상의(블라우스·원피스) — 색은 원본에 있던 색만 고를 수 있습니다 */
 export const TORSO_EXTRA_STYLES: LpcExtraStyle[] = EXTRAS.torsoExtra;
 
