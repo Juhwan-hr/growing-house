@@ -100,6 +100,7 @@ function fitGender(d: LpcConfig, gender: LpcGender): LpcConfig {
   return {
     ...d,
     gender,
+    headShape: d.headShape === "female" && gender !== "teen" ? null : d.headShape ?? null,
     legs: d.legs && gender !== "female" && (d.legs.style === "skirt" || LEGS_STYLES.find((l) => l.style === d.legs!.style)?.femaleOnly) ? { style: "pants", color: d.legs.color } : d.legs,
     torso: torsoExtra && !allows(torsoExtra, gender) ? { style: "tshirt", color: "white" } : d.torso,
     outer: outer && !allows(outer, gender) ? null : d.outer ?? null,
@@ -220,6 +221,12 @@ export default function AvatarCustomizerModal({
               <>
                 <Section title="피부">
                   <ColorRow colors={SKIN_TONES} current={draft.skin} onPick={(c) => patch({ skin: c })} />
+                </Section>
+                <Section title="얼굴형">
+                  <StyleGrid draft={draft} focus="face" none="기본"
+                    items={[{ style: "small", label: "작은 얼굴" }, ...(g === "teen" ? [{ style: "female", label: "여성 얼굴" }] : [])]}
+                    current={draft.headShape ?? null} make={(s) => ({ headShape: s as LpcConfig["headShape"] })}
+                    onPick={(s) => patch({ headShape: s as LpcConfig["headShape"] })} />
                 </Section>
                 <Section title="표정">
                   <StyleGrid draft={draft} focus="face" none="기본"

@@ -30,7 +30,7 @@
 - 직접 적을 땐 `app/game/lpcCatalog.ts`(+ `lpcExtras.json`)에 **있는 스타일·색 이름만** 쓰세요.
   예: `hair.style` = bob · bob_side_part · curly_short · ponytail · bangs_bun …,
   `torso.style` = tshirt · shortsleeve · longsleeve · cardigan …, `legs.style` = pants · formal · shorts · skirt(여성만).
-- 몸은 여자·남자·남자(슬림, LPC `teen`) 세 가지예요. 머리 36종·상의 17종·하의 11종·신발 8종·모자 15종·목 장식(목도리·넥타이·나비넥타이·목걸이)이 들어 있어요.
+- 몸은 여자·남자·남자(슬림, LPC `teen`) 세 가지예요. 머리 36종·상의 17종·하의 11종·신발 8종·모자 15종·목 장식(목도리·넥타이·나비넥타이·목걸이)이 들어 있어요. 여자 전용 상의(블라우스·튜닉·원피스·기모노)와 얼굴형 옵션(작은 얼굴·여성 얼굴)도 있어요.
 - 그림 파일은 `public/lpc/`에 있는 것뿐이에요. 새 LPC 파츠가 필요하면 원본 그림을 따로 받아 넣어야 하니
   사용자에게 먼저 말하세요(작가 표기도 `CREDITS.md`·`CREDITS-LPC.csv`에 추가해야 해요).
 

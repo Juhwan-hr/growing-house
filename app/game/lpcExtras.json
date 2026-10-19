@@ -593,6 +593,90 @@
         "brown",
         "tan"
       ]
+    },
+    {
+      "style": "blouse_longsleeve",
+      "label": "긴팔 블라우스",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "tunic",
+      "label": "튜닉",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "dress_slit",
+      "label": "슬릿 원피스",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
+    },
+    {
+      "style": "kimono",
+      "label": "기모노 원피스",
+      "genders": [
+        "female"
+      ],
+      "colors": [
+        "white",
+        "black",
+        "gray",
+        "navy",
+        "sky",
+        "teal",
+        "forest",
+        "yellow",
+        "pink",
+        "maroon",
+        "brown",
+        "tan"
+      ]
     }
   ],
   "torsoMore": [
@@ -661,6 +745,16 @@
     {
       "style": "short_shorts",
       "label": "짧은 반바지"
+    },
+    {
+      "style": "skirt_slit",
+      "label": "슬릿 치마",
+      "femaleOnly": true
+    },
+    {
+      "style": "skirt_overskirt",
+      "label": "겹치는 치마",
+      "femaleOnly": true
     },
     {
       "style": "skirt_straight",

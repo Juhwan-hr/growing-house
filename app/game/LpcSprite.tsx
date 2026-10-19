@@ -25,6 +25,8 @@ export type LpcConfig = {
   outer?: Part | null;
   /** 목도리·넥타이·나비넥타이·목걸이 (2026-10-20) */
   neck?: Part | null;
+  /** 얼굴형 — "small"=작은 얼굴(어려 보임), "female"=여성 얼굴(남자(슬림) 몸에만). 없으면 기본 */
+  headShape?: "small" | "female" | null;
 };
 
 function bodyUrl(gender: LpcGender, skin: string) {
@@ -37,9 +39,14 @@ function itemUrl(category: string, style: string, gender: LpcGender, color: stri
 /** teen 은 머리카락·표정 그림이 따로 없어서 male 파일을 씁니다 */
 const asMale = (g: LpcGender): "male" | "female" => (g === "teen" ? "male" : g);
 
-function headUrl(gender: LpcGender, skin: string) {
-  return `/lpc/head/${gender}/${skin}.png`;
+/** 어떤 머리 그림 폴더를 쓸지 — 기본은 성별 그대로(teen 은 male 얼굴을 baked 한 teen 폴더) */
+function headKind(c: LpcConfig): string {
+  if (c.headShape === "small") return c.gender === "female" ? "female_small" : "male_small";
+  if (c.headShape === "female" && c.gender === "teen") return "female";
+  return c.gender;
 }
+/** 표정 그림은 얼굴이 여성형이면 female, 아니면 male 파일 */
+const faceGender = (c: LpcConfig): "male" | "female" => (headKind(c).startsWith("female") ? "female" : "male");
 
 /**
  * 한 캐릭터를 이루는 레이어 이미지 주소들(아래 → 위 순서). LpcSprite와 꾸미기 화면의
@@ -57,9 +64,9 @@ export function lpcLayerUrls(config: LpcConfig): { key: string; url: string }[] 
   if (config.legs) layers.push({ key: "legs", url: itemUrl("legs", config.legs.style, g, config.legs.color) });
   if (config.torso) layers.push({ key: "torso", url: itemUrl("torso", config.torso.style, g, config.torso.color) });
   if (config.outer) layers.push({ key: "outer", url: itemUrl("outer", config.outer.style, g, config.outer.color) });
-  layers.push({ key: "head", url: headUrl(g, config.skin) });
+  layers.push({ key: "head", url: `/lpc/head/${headKind(config)}/${config.skin}.png` });
   if (config.neck) layers.push({ key: "neck", url: `/lpc/neck/${config.neck.style}/${g === "male" ? "male" : "female"}/${config.neck.color}.png` });
-  if (config.face) layers.push({ key: "face", url: `/lpc/face/${config.face}/${asMale(g)}/${config.skin}.png` });
+  if (config.face) layers.push({ key: "face", url: `/lpc/face/${config.face}/${faceGender(config)}/${config.skin}.png` });
   if (config.nose) layers.push({ key: "nose", url: `/lpc/nose/${config.nose}/${config.skin}.png` });
   if (config.eyebrows) layers.push({ key: "eyebrows", url: `/lpc/eyebrows/${config.eyebrows}/${hairColor}.png` });
   if (config.beard) layers.push({ key: "beard", url: `/lpc/beard/${config.beard}/${hairColor}.png` });
